@@ -218,13 +218,15 @@ export function UserProfile({ onGoToComponents }: UserProfileProps) {
           <Card className="p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">邀请码管理</h2>
-              <Button 
-                onClick={generateInviteCodes} 
-                disabled={isGeneratingCodes}
-                size="sm"
-              >
-                {isGeneratingCodes ? '生成中...' : '生成邀请码'}
-              </Button>
+              {profile.invite_codes.length === 0 && (
+                <Button 
+                  onClick={generateInviteCodes} 
+                  disabled={isGeneratingCodes}
+                  size="sm"
+                >
+                  {isGeneratingCodes ? '生成中...' : '生成邀请码'}
+                </Button>
+              )}
             </div>
             <div className="space-y-3">
               {profile.invite_codes.map((code) => (
