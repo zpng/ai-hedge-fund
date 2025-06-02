@@ -25,11 +25,10 @@ class XunhuPayRequest(BaseModel):
     plugins: str = "xunhupay"  # 固定值
     mchid: Optional[str] = None  # 商户号
     nonce_str: Optional[str] = None  # 随机字符串
-    hash_type: str = "MD5"  # 加密方式
     payment_type: Optional[str] = None  # 支付类型，如wechat、alipay
     wap_name: Optional[str] = None  # WAP网站名称
     wap_url: Optional[str] = None  # WAP网站URL
-    sign: Optional[str] = None  # 签名，由系统生成
+    hash: Optional[str] = None  # 签名，由系统生成
 
 
 class XunhuPayResponse(BaseModel):
@@ -46,7 +45,6 @@ class XunhuQueryRequest(BaseModel):
     appid: str  # 商户应用ID
     trade_order_id: str  # 商户订单号
     nonce_str: Optional[str] = None  # 随机字符串
-    hash_type: str = "MD5"  # 加密方式
     sign: Optional[str] = None  # 签名，由系统生成
 
 
@@ -67,7 +65,7 @@ class PaymentNotification(BaseModel):
     payment_method: str  # 支付方式
     nonce_str: str  # 随机字符串
     timestamp: str  # 时间戳
-    sign: str  # 签名
+    hash: str  # 签名
 
 
 class PaymentRecord(BaseModel):

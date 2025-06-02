@@ -30,19 +30,19 @@ class PaymentService:
         self.mchid = os.getenv("XUNHU_MCHID", "")
         self.api_url = os.getenv("XUNHU_API_URL", "https://api.xunhupay.com/payment/do.html")
         self.query_url = os.getenv("XUNHU_QUERY_URL", "https://api.xunhupay.com/payment/query.html")
-        self.payment_type = os.getenv("XUNHU_PAYMENT_TYPE", "")
+        self.payment_type = "WAP"
         self.base_url = os.getenv("BASE_URL", "http://localhost:8080")
 
     def _generate_sign(self, params: Dict[str, Any]) -> str:
-        """生成签名"""
-        # 按照ASCII码排序
-        sorted_params = sorted([(k, v) for k, v in params.items() if k != "sign" and v])
-        # 拼接字符串
-        sign_str = "&".join([f"{k}={v}" for k, v in sorted_params])
-        # 拼接密钥
-        sign_str = f"{sign_str}&key={self.app_secret}"
-        # MD5加密
-        return hashlib.md5(sign_str.encode()).hexdigest().upper()
+        attributes = ksort(attributes)
+        print(attributes)
+        m = hashlib.md5()
+        print(unquote_plus(urlencode(attributes)))
+        m.update((unquote_plus(urlencode(attributes))  + self.AppSecret).encode(encoding='utf-8'))
+        sign = m.hexdigest()
+        #sign = sign.upper()
+        print(sign)
+        return sign
 
     def _generate_trade_order_id(self) -> str:
         """生成商户订单号"""
@@ -80,7 +80,7 @@ class PaymentService:
                 trade_order_id=trade_order_id,
                 total_fee=amount,
                 title=f"AI对冲基金{subscription_type}订阅",
-                time=datetime.now().strftime("%Y%m%d%H%M%S"),
+                time=str(int(time.time())),
                 notify_url=notify_url,
                 return_url=return_url,
                 mchid=self.mchid,
