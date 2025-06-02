@@ -273,8 +273,8 @@ start_services() {
     print_success "🌐 Browser should open automatically to http://localhost:5173"
     echo ""
     print_status "Frontend (Web Interface): http://localhost:5173"
-    print_status "Backend (API): http://localhost:8000"
-    print_status "API Documentation: http://localhost:8000/docs"
+    print_status "Backend (API): http://localhost:8080"
+print_status "API Documentation: http://localhost:8080/docs"
     echo ""
     print_status "Press Ctrl+C to stop both services"
     echo ""
@@ -332,8 +332,8 @@ if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
     echo ""
     echo "After running, you can access:"
     echo "  - Frontend: http://localhost:5173"
-    echo "  - Backend API: http://localhost:8000"
-    echo "  - API Docs: http://localhost:8000/docs"
+    echo "  - Backend API: http://localhost:8080"
+    echo "  - API Docs: http://localhost:8080/docs"
     echo ""
     exit 0
 fi

@@ -29,7 +29,7 @@ interface UserProfileProps {
   onGoToComponents?: () => void;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 export function UserProfile({ onGoToComponents }: UserProfileProps) {
   const { user, token, logout, refreshUser } = useAuth();

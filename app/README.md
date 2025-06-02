@@ -70,8 +70,8 @@ cd app && npm install && npm run setup
 
 **After running, you can access:**
 - Frontend (Web Interface): http://localhost:5173
-- Backend API: http://localhost:8000
-- API Documentation: http://localhost:8000/docs
+- Backend API: http://localhost:8080
+- API Documentation: http://localhost:8080/docs
 
 ---
 
@@ -154,8 +154,8 @@ npm run dev
 
 You can now access:
 - Frontend application: http://localhost:5173
-- Backend API: http://localhost:8000
-- API Documentation: http://localhost:8000/docs
+- Backend API: http://localhost:8080
+- API Documentation: http://localhost:8080/docs
 
 ## Detailed Documentation
 
@@ -172,4 +172,4 @@ This project is for **educational and research purposes only**.
 - Creator assumes no liability for financial losses
 - Consult a financial advisor for investment decisions
 
-By using this software, you agree to use it solely for learning purposes. 
+By using this software, you agree to use it solely for learning purposes.
