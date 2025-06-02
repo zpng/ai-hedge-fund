@@ -199,6 +199,7 @@ start_services() {
     LOG_DIR=$(mktemp -d)
     BACKEND_LOG="$LOG_DIR/backend.log"
     FRONTEND_LOG="$LOG_DIR/frontend.log"
+    echo $LOG_DIR
     
     # Function to cleanup on exit
     cleanup() {
@@ -226,7 +227,7 @@ start_services() {
     # Start backend
     print_status "Starting backend server..."
     cd backend
-    poetry run uvicorn main:app --reload > "$BACKEND_LOG" 2>&1 &
+    poetry run uvicorn main:app --reload &
     BACKEND_PID=$!
     cd ..
     
@@ -235,8 +236,7 @@ start_services() {
     
     # Check if backend started successfully
     if ! kill -0 "$BACKEND_PID" 2>/dev/null; then
-        print_error "Backend failed to start. Check the logs:"
-        cat "$BACKEND_LOG"
+        print_error "Backend failed to start. Please check the output above for error details."
         exit 1
     fi
     
@@ -338,4 +338,4 @@ if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
 fi
 
 # Run main function
-main 
+main
