@@ -36,16 +36,27 @@ class PaymentService:
         self.type = "WAP"
         self.base_url = os.getenv("BASE_URL", "http://localhost:8080")
 
-    def _generate_sign(self, attributes: Dict[str, Any]) -> str:
-        attributes = ksort(attributes)
-        print(attributes)
-        m = hashlib.md5()
-        print(unquote_plus(urlencode(attributes)))
-        m.update((unquote_plus(urlencode(attributes))  + self.app_secret).encode(encoding='utf-8'))
-        sign = m.hexdigest()
-        #sign = sign.upper()
-        print(sign)
-        return sign
+    def _generate_hash(self, data: Dict[str, Any]) -> str:
+        """根据虎皮椒API文档生成hash签名"""
+        # 过滤空值和hash字段
+        filtered_data = {}
+        for key, value in data.items():
+            if value is not None and value != '' and key != 'hash':
+                filtered_data[key] = str(value)
+        
+        # 按参数名ASCII码从小到大排序（字典序）
+        sorted_keys = sorted(filtered_data.keys())
+        
+        # 拼接成key=value&key=value格式
+        string_a = '&'.join([f"{key}={filtered_data[key]}" for key in sorted_keys])
+        
+        # 拼接APPSECRET并进行MD5运算
+        string_sign_temp = string_a + self.app_secret
+        
+        # 生成32位小写MD5
+        hash_value = hashlib.md5(string_sign_temp.encode('utf-8')).hexdigest().lower()
+        
+        return hash_value
 
 
     def _generate_trade_order_id(self) -> str:
@@ -79,34 +90,39 @@ class PaymentService:
             notify_url = f"{self.base_url}/payment/notify"
             return_url = f"{self.base_url}/payment/return"
             
-            pay_request = XunhuPayRequest(
-                appid=self.appid,
-                trade_order_id=trade_order_id,
-                total_fee=amount,
-                title=f"AI对冲基金{subscription_type}订阅",
-                time=int(time.time()),
-                notify_url=notify_url,
-                mchid=self.mchid,
-                type=self.type,
-                nonce_str=uuid.uuid4().hex
-            )
+            # 构建请求参数（不包含hash）
+            params = {
+                "appid": self.appid,
+                "trade_order_id": trade_order_id,
+                "total_fee": amount,
+                "title": f"AI对冲基金{subscription_type}订阅",
+                "time": int(time.time()),
+                "notify_url": notify_url,
+                "mchid": self.mchid,
+                "type": self.type,
+                "nonce_str": uuid.uuid4().hex
+            }
             
-            # 生成签名
-            params = pay_request.dict(exclude_none=True)
-            params["hash"] = self._generate_sign(params)
+            # 生成hash签名
+            hash_value = self._generate_hash(params)
+            params["hash"] = hash_value
+            
+            # 创建请求对象
+            pay_request = XunhuPayRequest(**params)
             
             # 发送请求
             response = requests.post(self.api_url, json=params)
             pay_response = XunhuPayResponse(**response.json())
+            logger.info(f"支付请求响应: {pay_response.json()}")
             
-            if pay_response.status == 0 and pay_response.url:
+            if pay_response.errcode == 0 and pay_response.url:
                 # 更新支付记录
                 payment_record.payment_url = pay_response.url
                 await self._save_payment_record(payment_record)
                 return payment_record
             else:
                 # 支付请求失败
-                payment_record.status = PaymentStatus.FAILED
+                payment_record.errcode = PaymentStatus.FAILED
                 await self._save_payment_record(payment_record)
                 error_msg = f"支付请求失败: {pay_response.message}"
                 logger.error(error_msg)
@@ -118,15 +134,19 @@ class PaymentService:
     async def query_payment(self, trade_order_id: str) -> Dict[str, Any]:
         """查询支付状态"""
         try:
-            query_request = XunhuQueryRequest(
-                appid=self.appid,
-                trade_order_id=trade_order_id,
-                nonce_str=uuid.uuid4().hex
-            )
+            # 构建查询参数（不包含sign）
+            params = {
+                "appid": self.appid,
+                "trade_order_id": trade_order_id,
+                "nonce_str": uuid.uuid4().hex
+            }
             
-            # 生成签名
-            params = query_request.dict(exclude_none=True)
-            params["sign"] = self._generate_sign(params)
+            # 生成hash签名
+            hash_value = self._generate_hash(params)
+            params["hash"] = hash_value
+            
+            # 创建查询请求对象
+            query_request = XunhuQueryRequest(**params)
             
             # 发送请求
             response = requests.post(self.query_url, json=params)
@@ -160,10 +180,10 @@ class PaymentService:
         """处理支付回调通知"""
         try:
             # 验证签名
-            sign = notification_data.pop("sign", "")
-            calculated_sign = self._generate_sign(notification_data)
+            received_hash = notification_data.pop("hash", "")
+            calculated_hash = self._generate_hash(notification_data)
             
-            if sign != calculated_sign:
+            if received_hash != calculated_hash:
                 logger.error("支付回调签名验证失败")
                 return False
             

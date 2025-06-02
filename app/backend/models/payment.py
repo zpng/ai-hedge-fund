@@ -32,11 +32,12 @@ class XunhuPayRequest(BaseModel):
 
 class XunhuPayResponse(BaseModel):
     """虎皮椒支付响应参数"""
-    status: int  # 状态码，0表示成功
-    message: str  # 状态信息
+    errcode: int  # 状态码，0表示成功
+    errmsg: str  # 状态信息
+    hash: Optional[str] = None  # 签名，由系统生成
     url: Optional[str] = None  # 支付链接
-    trade_order_id: Optional[str] = None  # 商户订单号
-    order_id: Optional[str] = None  # 平台订单号
+    url_qrcode: Optional[str] = None  # 支付链接
+    oderid: Optional[int] = None  # 平台订单号
 
 
 class XunhuQueryRequest(BaseModel):
@@ -44,7 +45,7 @@ class XunhuQueryRequest(BaseModel):
     appid: str  # 商户应用ID
     trade_order_id: str  # 商户订单号
     nonce_str: Optional[str] = None  # 随机字符串
-    sign: Optional[str] = None  # 签名，由系统生成
+    hash: str  # 签名，由系统生成
 
 
 class XunhuQueryResponse(BaseModel):
