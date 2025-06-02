@@ -1,6 +1,8 @@
+import logging
 from fastapi import APIRouter, HTTPException, Depends, Request, status
 from fastapi.responses import JSONResponse
 from typing import Dict, Any
+import traceback
 
 from app.backend.models.user import User, SubscriptionType
 from app.backend.models.payment import PaymentRecord
@@ -10,6 +12,7 @@ from app.backend.dependencies import get_redis_service
 from app.backend.routes.auth import get_current_user
 
 router = APIRouter(prefix="/payment")
+logger = logging.getLogger("payment_routes")
 
 
 def get_payment_service(redis_service: RedisService = Depends(get_redis_service)) -> PaymentService:
@@ -25,8 +28,12 @@ async def create_payment(
 ):
     """创建支付订单"""
     try:
+        # 记录请求信息
+        logger.info(f"创建支付订单: 用户ID={current_user.id}, 订阅类型={subscription_type}")
+        
         # 检查用户是否已经是付费用户
         if current_user.subscription_type != SubscriptionType.TRIAL:
+            logger.warning(f"用户已是付费用户: {current_user.id}, 当前订阅类型: {current_user.subscription_type}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="您已经是付费用户，无需重复订阅"
@@ -34,6 +41,7 @@ async def create_payment(
         
         # 创建支付记录
         payment_record = await payment_service.create_payment(current_user.id, subscription_type)
+        logger.info(f"支付订单创建成功: {payment_record.trade_order_id}")
         
         return {
             "status": "success",
@@ -46,6 +54,11 @@ async def create_payment(
             }
         }
     except Exception as e:
+        # 记录详细错误信息
+        error_detail = traceback.format_exc()
+        logger.error(f"创建支付订单失败: {str(e)}\n{error_detail}")
+        
+        # 返回错误响应
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"创建支付订单失败: {str(e)}"
@@ -60,12 +73,19 @@ async def query_payment(
 ):
     """查询支付状态"""
     try:
+        logger.info(f"查询支付状态: 订单号={trade_order_id}, 用户ID={current_user.id}")
         result = await payment_service.query_payment(trade_order_id)
+        logger.info(f"查询支付状态成功: {result}")
         return {
             "status": "success",
             "data": result
         }
     except Exception as e:
+        # 记录详细错误信息
+        error_detail = traceback.format_exc()
+        logger.error(f"查询支付状态失败: {str(e)}\n{error_detail}")
+        
+        # 返回错误响应
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"查询支付状态失败: {str(e)}"
@@ -80,41 +100,33 @@ async def payment_notify(
     """支付回调通知接口"""
     try:
         # 获取请求数据
+        logger.info("收到支付回调通知")
         if request.headers.get("content-type", "").startswith("application/json"):
             notification_data = await request.json()
+            logger.info(f"支付回调数据(JSON): {notification_data}")
         else:
             # 处理表单数据
             form_data = await request.form()
             notification_data = dict(form_data)
+            logger.info(f"支付回调数据(表单): {notification_data}")
         
         # 处理支付通知
         success = await payment_service.process_payment_notification(notification_data)
         
         if success:
+            logger.info("支付回调处理成功")
             return "success"  # 虎皮椒要求返回"success"字符串
         else:
+            logger.warning("支付回调处理失败")
             return "fail"
     except Exception as e:
-        print(f"支付回调处理失败: {str(e)}")
+        # 记录详细错误信息
+        error_detail = traceback.format_exc()
+        logger.error(f"支付回调处理异常: {str(e)}\n{error_detail}")
         return "fail"
 
 
 @router.get("/return")
-async def payment_return(request: Request):
-    """支付成功跳转页面"""
-    # 获取查询参数
-    query_params = dict(request.query_params)
-    trade_order_id = query_params.get("trade_order_id")
-    
-    if trade_order_id:
-        # 可以重定向到前端的支付成功页面
-        return JSONResponse({
-            "status": "success",
-            "message": "支付成功",
-            "trade_order_id": trade_order_id
-        })
-    else:
-        return JSONResponse({
-            "status": "error",
-            "message": "支付信息不完整"
-        })
+async def payment_return():
+    """支付完成后的同步跳转页面"""
+    return {"message": "支付处理中，请稍后刷新页面查看结果"}
