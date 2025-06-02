@@ -212,7 +212,7 @@ def analyze_valuation_graham(financial_line_items: list, market_cap: float) -> d
     if not financial_line_items or not market_cap or market_cap <= 0:
         return {"score": 0, "details": "Insufficient data to perform valuation"}
 
-    latest = financial_line_items[0]
+    latest = financial_line_items[-1]
     current_assets = latest.current_assets or 0
     total_liabilities = latest.total_liabilities or 0
     book_value_ps = latest.book_value_per_share or 0
