@@ -193,16 +193,16 @@ class PaymentService:
     async def _save_payment_record(self, payment_record: PaymentRecord) -> None:
         """保存支付记录到Redis"""
         key = f"payment:{payment_record.id}"
-        await self.redis_service.redis_client.set(key, payment_record.json())
+        self.redis_service.redis_client.set(key, payment_record.json())
         
         # 同时保存订单号到ID的映射，方便查询
         order_key = f"payment:order:{payment_record.trade_order_id}"
-        await self.redis_service.redis_client.set(order_key, payment_record.id)
+        self.redis_service.redis_client.set(order_key, payment_record.id)
 
     async def _get_payment_record(self, payment_id: str) -> Optional[PaymentRecord]:
         """从Redis获取支付记录"""
         key = f"payment:{payment_id}"
-        data = await self.redis_service.redis_client.get(key)
+        data = self.redis_service.redis_client.get(key)
         if data:
             return PaymentRecord.parse_raw(data)
         return None
@@ -210,7 +210,7 @@ class PaymentService:
     async def _get_payment_record_by_trade_order_id(self, trade_order_id: str) -> Optional[PaymentRecord]:
         """通过商户订单号获取支付记录"""
         order_key = f"payment:order:{trade_order_id}"
-        payment_id = await self.redis_service.redis_client.get(order_key)
+        payment_id = self.redis_service.redis_client.get(order_key)
         if payment_id:
             return await self._get_payment_record(payment_id.decode())
         return None
