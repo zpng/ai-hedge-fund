@@ -196,8 +196,8 @@ class PaymentService:
         if payment_record.status != PaymentStatus.SUCCESS:
             return
         
-        # 获取订阅类型
-        subscription_type = SubscriptionType(payment_record.subscription_type)
+        # 获取订阅类型 - 修复：使用getattr获取正确的枚举值
+        subscription_type = getattr(SubscriptionType, payment_record.subscription_type.upper())
         
         # 更新用户订阅
         await self.redis_service.update_subscription(payment_record.user_id, subscription_type)
