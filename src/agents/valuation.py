@@ -123,14 +123,14 @@ def valuation_analyst_agent(state: AgentState):
             v["weight"] * v["gap"] for v in method_values.values() if v["gap"] is not None
         ) / total_weight
 
-        signal = "bullish" if weighted_gap > 0.15 else "bearish" if weighted_gap < -0.15 else "neutral"
+        signal = "看涨" if weighted_gap > 0.15 else "看跌" if weighted_gap < -0.15 else "中立"
         confidence = round(min(abs(weighted_gap) / 0.30 * 100, 100))
 
         reasoning_dict = {
             f"{m}_analysis": {
                 "signal": (
-                    "bullish" if vals["gap"] and vals["gap"] > 0.15 else
-                    "bearish" if vals["gap"] and vals["gap"] < -0.15 else "neutral"
+                    "看涨" if vals["gap"] and vals["gap"] > 0.15 else
+            "看跌" if vals["gap"] and vals["gap"] < -0.15 else "中立"
                 ),
                 "details": (
                     f"Value: ${vals['value']:,.2f}, Market Cap: ${market_cap:,.2f}, "

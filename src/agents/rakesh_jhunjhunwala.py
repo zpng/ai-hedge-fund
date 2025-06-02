@@ -9,7 +9,7 @@ from src.utils.llm import call_llm
 from src.utils.progress import progress
 
 class RakeshJhunjhunwalaSignal(BaseModel):
-    signal: Literal["bullish", "bearish", "neutral"]
+    signal: Literal["看涨", "看跌", "中立"]
     confidence: float
     reasoning: str
 
@@ -91,18 +91,18 @@ def rakesh_jhunjhunwala_agent(state: AgentState):
 
         # Jhunjhunwala's decision rules (30% minimum margin of safety for conviction)
         if margin_of_safety is not None and margin_of_safety >= 0.30:
-            signal = "bullish"
+            signal = "看涨"
         elif margin_of_safety is not None and margin_of_safety <= -0.30:
-            signal = "bearish"
+            signal = "看跌"
         else:
             # Use quality score as tie-breaker for neutral cases
             quality_score = assess_quality_metrics(financial_line_items)
             if quality_score >= 0.7 and total_score >= max_score * 0.6:
-                signal = "bullish"  # High quality company at fair price
+                signal = "看涨"  # High quality company at fair price
             elif quality_score <= 0.4 or total_score <= max_score * 0.3:
-                signal = "bearish"  # Poor quality or fundamentals
+                signal = "看跌"  # Poor quality or fundamentals
             else:
-                signal = "neutral"
+                signal = "中立"
 
         # Confidence based on margin of safety and quality
         if margin_of_safety is not None:
@@ -695,7 +695,7 @@ def generate_jhunjhunwala_output(
 
     # Default fallback signal in case parsing fails
     def create_default_rakesh_jhunjhunwala_signal():
-        return RakeshJhunjhunwalaSignal(signal="neutral", confidence=0.0, reasoning="Error in analysis, defaulting to neutral")
+        return RakeshJhunjhunwalaSignal(signal="中立", confidence=0.0, reasoning="Error in analysis, defaulting to neutral")
 
     return call_llm(
         prompt=prompt,

@@ -393,9 +393,9 @@ class Backtester:
                     if ticker in signals:
                         ticker_signals[agent_name] = signals[ticker]
 
-                bullish_count = len([s for s in ticker_signals.values() if s.get("signal", "").lower() == "bullish"])
-                bearish_count = len([s for s in ticker_signals.values() if s.get("signal", "").lower() == "bearish"])
-                neutral_count = len([s for s in ticker_signals.values() if s.get("signal", "").lower() == "neutral"])
+                bullish_count = len([s for s in ticker_signals.values() if s.get("signal", "") == "看涨"])
+                bearish_count = len([s for s in ticker_signals.values() if s.get("signal", "") == "看跌"])
+                neutral_count = len([s for s in ticker_signals.values() if s.get("signal", "") == "中立"])
 
                 # Calculate net position value
                 pos = self.portfolio["positions"][ticker]

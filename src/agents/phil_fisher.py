@@ -17,7 +17,7 @@ import statistics
 
 
 class PhilFisherSignal(BaseModel):
-    signal: Literal["bullish", "bearish", "neutral"]
+    signal: Literal["看涨", "看跌", "中立"]
     confidence: float
     reasoning: str
 
@@ -120,11 +120,11 @@ def phil_fisher_agent(state: AgentState):
 
         # Simple bullish/neutral/bearish signal
         if total_score >= 7.5:
-            signal = "bullish"
+            signal = "看涨"
         elif total_score <= 4.5:
-            signal = "bearish"
+            signal = "看跌"
         else:
-            signal = "neutral"
+            signal = "中立"
 
         analysis_data[ticker] = {
             "signal": signal,
@@ -588,7 +588,7 @@ def generate_fisher_output(
 
     def create_default_signal():
         return PhilFisherSignal(
-            signal="neutral",
+            signal="中立",
             confidence=0.0,
             reasoning="Error in analysis, defaulting to neutral"
         )

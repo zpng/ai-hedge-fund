@@ -60,9 +60,13 @@ export function TextOutputDialog({
     const variant = signal === 'bullish' ? 'success' : 
                    signal === 'bearish' ? 'destructive' : 'outline';
     
+    const signalText = signal === 'bullish' ? '看涨' : 
+                      signal === 'bearish' ? '看跌' : 
+                      signal === 'neutral' ? '中立' : signal;
+    
     return (
       <Badge variant={variant as any}>
-        {signal}
+        {signalText}
       </Badge>
     );
   };

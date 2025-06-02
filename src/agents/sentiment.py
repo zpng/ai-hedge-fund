@@ -32,7 +32,7 @@ def sentiment_analyst_agent(state: AgentState):
 
         # Get the signals from the insider trades
         transaction_shares = pd.Series([t.transaction_shares for t in insider_trades]).dropna()
-        insider_signals = np.where(transaction_shares < 0, "bearish", "bullish").tolist()
+        insider_signals = np.where(transaction_shares < 0, "看跌", "看涨").tolist()
 
         progress.update_status("sentiment_analyst_agent", ticker, "Fetching company news")
 
@@ -41,8 +41,8 @@ def sentiment_analyst_agent(state: AgentState):
 
         # Get the sentiment from the company news
         sentiment = pd.Series([n.sentiment for n in company_news]).dropna()
-        news_signals = np.where(sentiment == "negative", "bearish", 
-                              np.where(sentiment == "positive", "bullish", "neutral")).tolist()
+        news_signals = np.where(sentiment == "negative", "看跌",
+                            np.where(sentiment == "positive", "看涨", "中立")).tolist()
         
         progress.update_status("sentiment_analyst_agent", ticker, "Combining signals")
         # Combine signals from both sources with weights
@@ -51,20 +51,20 @@ def sentiment_analyst_agent(state: AgentState):
         
         # Calculate weighted signal counts
         bullish_signals = (
-            insider_signals.count("bullish") * insider_weight +
-            news_signals.count("bullish") * news_weight
-        )
-        bearish_signals = (
-            insider_signals.count("bearish") * insider_weight +
-            news_signals.count("bearish") * news_weight
-        )
+        insider_signals.count("看涨") * insider_weight +
+        news_signals.count("看涨") * news_weight
+    )
+    bearish_signals = (
+        insider_signals.count("看跌") * insider_weight +
+        news_signals.count("看跌") * news_weight
+    )
 
-        if bullish_signals > bearish_signals:
-            overall_signal = "bullish"
-        elif bearish_signals > bullish_signals:
-            overall_signal = "bearish"
-        else:
-            overall_signal = "neutral"
+    if bullish_signals > bearish_signals:
+        overall_signal = "看涨"
+    elif bearish_signals > bullish_signals:
+        overall_signal = "看跌"
+    else:
+        overall_signal = "中立"
 
         # Calculate confidence level based on the weighted proportion
         total_weighted_signals = len(insider_signals) * insider_weight + len(news_signals) * news_weight
@@ -77,12 +77,12 @@ def sentiment_analyst_agent(state: AgentState):
         reasoning_parts.append(f"情感分析结果: {overall_signal} (置信度: {confidence}%)")
         reasoning_parts.append(f"\n数据来源分析:")
         reasoning_parts.append(f"• 内部人交易: {len(insider_signals)}条记录 (权重: {insider_weight*100}%)")
-        reasoning_parts.append(f"  - 看涨信号: {insider_signals.count('bullish')}条")
-        reasoning_parts.append(f"  - 看跌信号: {insider_signals.count('bearish')}条")
+        reasoning_parts.append(f"  - 看涨信号: {insider_signals.count('看涨')}条")
+        reasoning_parts.append(f"  - 看跌信号: {insider_signals.count('看跌')}条")
         reasoning_parts.append(f"• 公司新闻: {len(news_signals)}条记录 (权重: {news_weight*100}%)")
-        reasoning_parts.append(f"  - 看涨信号: {news_signals.count('bullish')}条")
-        reasoning_parts.append(f"  - 看跌信号: {news_signals.count('bearish')}条")
-        reasoning_parts.append(f"  - 中性信号: {news_signals.count('neutral')}条")
+        reasoning_parts.append(f"  - 看涨信号: {news_signals.count('看涨')}条")
+        reasoning_parts.append(f"  - 看跌信号: {news_signals.count('看跌')}条")
+        reasoning_parts.append(f"  - 中性信号: {news_signals.count('中立')}条")
         reasoning_parts.append(f"\n加权信号统计:")
         reasoning_parts.append(f"• 加权看涨信号: {bullish_signals:.1f}")
         reasoning_parts.append(f"• 加权看跌信号: {bearish_signals:.1f}")

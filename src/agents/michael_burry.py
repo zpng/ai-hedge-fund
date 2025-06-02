@@ -32,7 +32,7 @@ __all__ = [
 class MichaelBurrySignal(BaseModel):
     """Schema returned by the LLM."""
 
-    signal: Literal["bullish", "bearish", "neutral"]
+    signal: Literal["看涨", "看跌", "中立"]
     confidence: float  # 0–100
     reasoning: str
 
@@ -118,12 +118,12 @@ def michael_burry_agent(state: AgentState):  # noqa: C901  (complexity is fine h
             + contrarian_analysis["max_score"]
         )
 
-        if total_score >= 0.7 * max_score:
-            signal = "bullish"
-        elif total_score <= 0.3 * max_score:
-            signal = "bearish"
+        if total_score >= 0.7 * max_possible_score:
+            signal = "看涨"
+        elif total_score <= 0.3 * max_possible_score:
+            signal = "看跌"
         else:
-            signal = "neutral"
+            signal = "中立"
 
         # ------------------------------------------------------------------
         # Collect data for LLM reasoning & output
@@ -309,7 +309,7 @@ def _analyze_contrarian_sentiment(news):
 
     # Count negative sentiment articles
     sentiment_negative_count = sum(
-        1 for n in news if n.sentiment and n.sentiment.lower() in ["negative", "bearish"]
+        1 for n in news if n.sentiment and n.sentiment.lower() in ["negative", "看跌"]
     )
     
     if sentiment_negative_count >= 5:
@@ -378,7 +378,7 @@ def _generate_burry_output(
 
     # Default fallback signal in case parsing fails
     def create_default_michael_burry_signal():
-        return MichaelBurrySignal(signal="neutral", confidence=0.0, reasoning="Parsing error – defaulting to neutral")
+        return MichaelBurrySignal(signal="中立", confidence=0.0, reasoning="Parsing error – defaulting to neutral")
 
     return call_llm(
         prompt=prompt,

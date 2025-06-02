@@ -10,7 +10,7 @@ from src.utils.progress import progress
 
 
 class WarrenBuffettSignal(BaseModel):
-    signal: Literal["bullish", "bearish", "neutral"]
+    signal: Literal["看涨", "看跌", "中立"]
     confidence: float
     reasoning: str
 
@@ -825,7 +825,7 @@ def generate_buffett_output(
 
     # Default fallback signal in case parsing fails
     def create_default_warren_buffett_signal():
-        return WarrenBuffettSignal(signal="neutral", confidence=0.0, reasoning="Error in analysis, defaulting to neutral")
+        return WarrenBuffettSignal(signal="中立", confidence=0.0, reasoning="Error in analysis, defaulting to neutral")
 
     return call_llm(
         prompt=prompt,

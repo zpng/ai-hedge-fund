@@ -47,9 +47,9 @@ def print_trading_output(result: dict) -> None:
             confidence = signal.get("confidence", 0)
 
             signal_color = {
-                "BULLISH": Fore.GREEN,
-                "BEARISH": Fore.RED,
-                "NEUTRAL": Fore.YELLOW,
+                "看涨": Fore.GREEN,
+    "看跌": Fore.RED,
+    "中立": Fore.YELLOW,
             }.get(signal_type, Fore.WHITE)
             
             # Get reasoning if available
@@ -280,9 +280,9 @@ def print_backtest_results(table_rows: list) -> None:
                 "Price",
                 "Shares",
                 "Position Value",
-                "Bullish",
-                "Bearish",
-                "Neutral",
+                "看涨",
+                "看跌",
+                "中立",
             ],
             tablefmt="grid",
             colalign=(

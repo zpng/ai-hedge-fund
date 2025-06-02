@@ -207,13 +207,13 @@ def calculate_trend_signals(prices_df):
     trend_strength = adx["adx"].iloc[-1] / 100.0
 
     if short_trend.iloc[-1] and medium_trend.iloc[-1]:
-        signal = "bullish"
+        signal = "看涨"
         confidence = trend_strength
     elif not short_trend.iloc[-1] and not medium_trend.iloc[-1]:
-        signal = "bearish"
+        signal = "看跌"
         confidence = trend_strength
     else:
-        signal = "neutral"
+        signal = "中立"
         confidence = 0.5
 
     return {
@@ -247,13 +247,13 @@ def calculate_mean_reversion_signals(prices_df):
 
     # Combine signals
     if z_score.iloc[-1] < -2 and price_vs_bb < 0.2:
-        signal = "bullish"
+        signal = "看涨"
         confidence = min(abs(z_score.iloc[-1]) / 4, 1.0)
     elif z_score.iloc[-1] > 2 and price_vs_bb > 0.8:
-        signal = "bearish"
+        signal = "看跌"
         confidence = min(abs(z_score.iloc[-1]) / 4, 1.0)
     else:
-        signal = "neutral"
+        signal = "中立"
         confidence = 0.5
 
     return {
@@ -292,13 +292,13 @@ def calculate_momentum_signals(prices_df):
     volume_confirmation = volume_momentum.iloc[-1] > 1.0
 
     if momentum_score > 0.05 and volume_confirmation:
-        signal = "bullish"
+        signal = "看涨"
         confidence = min(abs(momentum_score) * 5, 1.0)
     elif momentum_score < -0.05 and volume_confirmation:
-        signal = "bearish"
+        signal = "看跌"
         confidence = min(abs(momentum_score) * 5, 1.0)
     else:
-        signal = "neutral"
+        signal = "中立"
         confidence = 0.5
 
     return {
@@ -339,13 +339,13 @@ def calculate_volatility_signals(prices_df):
     vol_z = vol_z_score.iloc[-1]
 
     if current_vol_regime < 0.8 and vol_z < -1:
-        signal = "bullish"  # Low vol regime, potential for expansion
+        signal = "看涨"  # Low vol regime, potential for expansion
         confidence = min(abs(vol_z) / 3, 1.0)
     elif current_vol_regime > 1.2 and vol_z > 1:
-        signal = "bearish"  # High vol regime, potential for contraction
+        signal = "看跌"  # High vol regime, potential for contraction
         confidence = min(abs(vol_z) / 3, 1.0)
     else:
-        signal = "neutral"
+        signal = "中立"
         confidence = 0.5
 
     return {
@@ -379,13 +379,13 @@ def calculate_stat_arb_signals(prices_df):
 
     # Generate signal based on statistical properties
     if hurst < 0.4 and skew.iloc[-1] > 1:
-        signal = "bullish"
+        signal = "看涨"
         confidence = (0.5 - hurst) * 2
     elif hurst < 0.4 and skew.iloc[-1] < -1:
-        signal = "bearish"
+        signal = "看跌"
         confidence = (0.5 - hurst) * 2
     else:
-        signal = "neutral"
+        signal = "中立"
         confidence = 0.5
 
     return {
@@ -404,7 +404,7 @@ def weighted_signal_combination(signals, weights):
     Combines multiple trading signals using a weighted approach
     """
     # Convert signals to numeric values
-    signal_values = {"bullish": 1, "neutral": 0, "bearish": -1}
+    signal_values = {"看涨": 1, "中立": 0, "看跌": -1}
 
     weighted_sum = 0
     total_confidence = 0
@@ -425,11 +425,11 @@ def weighted_signal_combination(signals, weights):
 
     # Convert back to signal
     if final_score > 0.2:
-        signal = "bullish"
+        signal = "看涨"
     elif final_score < -0.2:
-        signal = "bearish"
+        signal = "看跌"
     else:
-        signal = "neutral"
+        signal = "中立"
 
     return {"signal": signal, "confidence": abs(final_score)}
 

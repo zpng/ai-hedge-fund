@@ -11,7 +11,7 @@ import math
 
 
 class BenGrahamSignal(BaseModel):
-    signal: Literal["bullish", "bearish", "neutral"]
+    signal: Literal["看涨", "看跌", "中立"]
     confidence: float
     reasoning: str
 
@@ -57,11 +57,11 @@ def ben_graham_agent(state: AgentState):
 
         # Map total_score to signal
         if total_score >= 0.7 * max_possible_score:
-            signal = "bullish"
+            signal = "看涨"
         elif total_score <= 0.3 * max_possible_score:
-            signal = "bearish"
+            signal = "看跌"
         else:
-            signal = "neutral"
+            signal = "中立"
 
         analysis_data[ticker] = {"signal": signal, "score": total_score, "max_score": max_possible_score, "earnings_analysis": earnings_analysis, "strength_analysis": strength_analysis, "valuation_analysis": valuation_analysis}
 
@@ -335,7 +335,7 @@ def generate_graham_output(
     prompt = template.invoke({"analysis_data": json.dumps(analysis_data, indent=2), "ticker": ticker})
 
     def create_default_ben_graham_signal():
-        return BenGrahamSignal(signal="neutral", confidence=0.0, reasoning="Error in generating analysis; defaulting to neutral.")
+        return BenGrahamSignal(signal="中立", confidence=0.0, reasoning="Error in generating analysis; defaulting to neutral.")
 
     return call_llm(
         prompt=prompt,

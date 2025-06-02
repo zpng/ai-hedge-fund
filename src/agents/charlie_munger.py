@@ -9,7 +9,7 @@ from src.utils.progress import progress
 from src.utils.llm import call_llm
 
 class CharlieMungerSignal(BaseModel):
-    signal: Literal["bullish", "bearish", "neutral"]
+    signal: Literal["看涨", "看跌", "中立"]
     confidence: float
     reasoning: str
 
@@ -102,11 +102,11 @@ def charlie_munger_agent(state: AgentState):
         
         # Generate a simple buy/hold/sell signal
         if total_score >= 7.5:  # Munger has very high standards
-            signal = "bullish"
+            signal = "看涨"
         elif total_score <= 4.5:
-            signal = "bearish"
+            signal = "看跌"
         else:
-            signal = "neutral"
+            signal = "中立"
         
         analysis_data[ticker] = {
             "signal": signal,
@@ -731,7 +731,7 @@ def generate_munger_output(
 
     def create_default_charlie_munger_signal():
         return CharlieMungerSignal(
-            signal="neutral",
+            signal="中立",
             confidence=0.0,
             reasoning="Error in analysis, defaulting to neutral"
         )

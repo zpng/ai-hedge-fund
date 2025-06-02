@@ -11,7 +11,7 @@ from src.utils.llm import call_llm
 
 
 class BillAckmanSignal(BaseModel):
-    signal: Literal["bullish", "bearish", "neutral"]
+    signal: Literal["看涨", "看跌", "中立"]
     confidence: float
     reasoning: str
 
@@ -80,11 +80,11 @@ def bill_ackman_agent(state: AgentState):
         
         # Generate a simple buy/hold/sell (bullish/neutral/bearish) signal
         if total_score >= 0.7 * max_possible_score:
-            signal = "bullish"
+            signal = "看涨"
         elif total_score <= 0.3 * max_possible_score:
-            signal = "bearish"
+            signal = "看跌"
         else:
-            signal = "neutral"
+            signal = "中立"
         
         analysis_data[ticker] = {
             "signal": signal,
@@ -453,7 +453,7 @@ def generate_ackman_output(
 
     def create_default_bill_ackman_signal():
         return BillAckmanSignal(
-            signal="neutral",
+            signal="中立",
             confidence=0.0,
             reasoning="Error in analysis, defaulting to neutral"
         )

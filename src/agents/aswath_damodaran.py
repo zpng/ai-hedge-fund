@@ -18,7 +18,7 @@ from src.utils.progress import progress
 
 
 class AswathDamodaranSignal(BaseModel):
-    signal: Literal["bullish", "bearish", "neutral"]
+    signal: Literal["看涨", "看跌", "中立"]
     confidence: float          # 0‒100
     reasoning: str
 
@@ -89,13 +89,13 @@ def aswath_damodaran_agent(state: AgentState):
             (intrinsic_value - market_cap) / market_cap if intrinsic_value and market_cap else None
         )
 
-        # Decision rules (Damodaran tends to act with ~20‑25 % MOS)
+        # Decision rules (Damodaran tends to act with ~20‑25 % MOS)
         if margin_of_safety is not None and margin_of_safety >= 0.25:
-            signal = "bullish"
+            signal = "看涨"
         elif margin_of_safety is not None and margin_of_safety <= -0.25:
-            signal = "bearish"
+            signal = "看跌"
         else:
-            signal = "neutral"
+            signal = "中立"
 
         confidence = min(max(abs(margin_of_safety or 0) * 200, 10), 100)  # simple proxy 10‑100
 
@@ -404,7 +404,7 @@ def generate_damodaran_output(
 
     def default_signal():
         return AswathDamodaranSignal(
-            signal="neutral",
+            signal="中立",
             confidence=0.0,
             reasoning="Parsing error; defaulting to neutral",
         )
