@@ -22,7 +22,6 @@ class XunhuPayRequest(BaseModel):
     notify_url: str  # 异步通知地址
     return_url: str  # 同步通知地址
     callback_url: Optional[str] = None  # 点击关闭按钮后的跳转地址
-    plugins: str = "xunhupay"  # 固定值
     mchid: Optional[str] = None  # 商户号
     nonce_str: Optional[str] = None  # 随机字符串
     payment_type: Optional[str] = None  # 支付类型，如wechat、alipay
