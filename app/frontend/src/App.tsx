@@ -71,7 +71,7 @@ function AppContent() {
         </div>
       ) : undefined}
     >
-      <Flow />
+      <Flow onGoToHome={() => setShowProfile(true)} />
     </Layout>
   );
 }

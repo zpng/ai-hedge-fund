@@ -12,6 +12,7 @@ import {
   useNodesState
 } from '@xyflow/react';
 import { useCallback, useState } from 'react';
+import { ArrowLeft, Home } from 'lucide-react';
 
 import '@xyflow/react/dist/style.css';
 
@@ -22,9 +23,10 @@ import { Button } from './ui/button';
 
 type FlowProps = {
   className?: string;
+  onGoToHome?: () => void;
 };
 
-export function Flow({ className = '' }: FlowProps) {
+export function Flow({ className = '', onGoToHome }: FlowProps) {
   const [colorMode] = useState<ColorMode>('dark');
   const [nodes, setNodes, onNodesChange] = useNodesState<AppNode>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -60,6 +62,11 @@ export function Flow({ className = '' }: FlowProps) {
     setEdges([]);
   }, [setNodes, setEdges]);
 
+  // Handle browser back button
+  const handleGoBack = useCallback(() => {
+    window.history.back();
+  }, []);
+
   return (
     <div className={`w-full h-full ${className}`}>
       <ReactFlow
@@ -82,14 +89,36 @@ export function Flow({ className = '' }: FlowProps) {
           style={{ bottom: 20 }}
         />
         <Panel position="top-right">
-          <Button
-            onClick={resetFlow}
-            className="mr-2"
-          >
-            Reset Flow
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleGoBack}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              返回
+            </Button>
+            {onGoToHome && (
+              <Button
+                onClick={onGoToHome}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1"
+              >
+                <Home className="w-4 h-4" />
+                个人中心
+              </Button>
+            )}
+            <Button
+              onClick={resetFlow}
+              size="sm"
+            >
+              Reset Flow
+            </Button>
+          </div>
         </Panel>
       </ReactFlow>
     </div>
   );
-} 
+}
