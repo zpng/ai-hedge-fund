@@ -33,7 +33,7 @@ class PaymentService:
         self.mchid = os.getenv("XUNHU_MCHID", "")
         self.api_url = os.getenv("XUNHU_API_URL", "https://api.xunhupay.com/payment/do.html")
         self.query_url = os.getenv("XUNHU_QUERY_URL", "https://api.xunhupay.com/payment/query.html")
-        self.payment_type = "WAP"
+        self.type = "WAP"
         self.base_url = os.getenv("BASE_URL", "http://localhost:8080")
 
     def _generate_sign(self, attributes: Dict[str, Any]) -> str:
@@ -84,11 +84,10 @@ class PaymentService:
                 trade_order_id=trade_order_id,
                 total_fee=amount,
                 title=f"AI对冲基金{subscription_type}订阅",
-                time=str(int(time.time())),
+                time=int(time.time()),
                 notify_url=notify_url,
-                return_url=return_url,
                 mchid=self.mchid,
-                payment_type=self.payment_type,
+                type=self.type,
                 nonce_str=uuid.uuid4().hex
             )
             

@@ -18,16 +18,16 @@ class XunhuPayRequest(BaseModel):
     trade_order_id: str  # 商户订单号
     total_fee: float  # 支付金额
     title: str  # 商品标题
-    time: str  # 发起时间，格式YmdHis
+    time: int  # 发起时间，格式YmdHis
     notify_url: str  # 异步通知地址
-    return_url: str  # 同步通知地址
+    return_url: Optional[str] = None  # 同步通知地址
     callback_url: Optional[str] = None  # 点击关闭按钮后的跳转地址
-    mchid: Optional[str] = None  # 商户号
-    nonce_str: Optional[str] = None  # 随机字符串
-    payment_type: Optional[str] = None  # 支付类型，如wechat、alipay
+    mchid: str = None  # 商户号
+    nonce_str: str = None  # 随机字符串
+    type: str = None  # 支付类型，如wechat、alipay
     wap_name: Optional[str] = None  # WAP网站名称
     wap_url: Optional[str] = None  # WAP网站URL
-    hash: Optional[str] = None  # 签名，由系统生成
+    hash: str  # 签名，由系统生成
 
 
 class XunhuPayResponse(BaseModel):
