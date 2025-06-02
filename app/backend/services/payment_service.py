@@ -2,6 +2,7 @@ import os
 import time
 import uuid
 import hashlib
+from urllib.parse import urlencode, unquote_plus
 import requests
 import logging
 from datetime import datetime
@@ -18,6 +19,8 @@ from app.backend.models.user import SubscriptionType
 logger = logging.getLogger("payment_service")
 logging.basicConfig(level=logging.INFO)
 
+def ksort(d):
+    return [(k, d[k]) for k in sorted(d.keys())]
 
 class PaymentService:
     """支付服务类，处理虎皮椒支付相关操作"""
@@ -33,16 +36,17 @@ class PaymentService:
         self.payment_type = "WAP"
         self.base_url = os.getenv("BASE_URL", "http://localhost:8080")
 
-    def _generate_sign(self, params: Dict[str, Any]) -> str:
+    def _generate_sign(self, attributes: Dict[str, Any]) -> str:
         attributes = ksort(attributes)
         print(attributes)
         m = hashlib.md5()
         print(unquote_plus(urlencode(attributes)))
-        m.update((unquote_plus(urlencode(attributes))  + self.AppSecret).encode(encoding='utf-8'))
+        m.update((unquote_plus(urlencode(attributes))  + self.app_secret).encode(encoding='utf-8'))
         sign = m.hexdigest()
         #sign = sign.upper()
         print(sign)
         return sign
+
 
     def _generate_trade_order_id(self) -> str:
         """生成商户订单号"""
@@ -90,7 +94,7 @@ class PaymentService:
             
             # 生成签名
             params = pay_request.dict(exclude_none=True)
-            params["sign"] = self._generate_sign(params)
+            params["hash"] = self._generate_sign(params)
             
             # 发送请求
             response = requests.post(self.api_url, json=params)
