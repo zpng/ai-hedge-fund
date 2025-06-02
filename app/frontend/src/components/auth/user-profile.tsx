@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -31,8 +31,8 @@ interface UserProfileProps {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
-export function UserProfile({ onGoToComponents }: UserProfileProps) {
-  const { user, token, logout, refreshUser } = useAuth();
+export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfileProps) {
+  const { user: _user, token, logout, refreshUser } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -241,7 +241,7 @@ export function UserProfile({ onGoToComponents }: UserProfileProps) {
                     {code.used_at ? (
                       <Badge variant="secondary">已使用</Badge>
                     ) : (
-                      <Badge variant="default">可用</Badge>
+                      <Badge variant="success">可用</Badge>
                     )}
                   </div>
                 </div>
