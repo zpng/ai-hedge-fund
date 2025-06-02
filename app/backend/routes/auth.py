@@ -119,21 +119,13 @@ async def subscribe(
     redis_service: RedisService = Depends(get_redis_service)
 ):
     """Subscribe to a paid plan."""
-    # TODO: Integrate with payment processor (Stripe, etc.)
-    # For now, we'll just update the subscription directly
+    # 此方法已被弃用，改为使用虎皮椒支付
+    # 请使用 /payment/create 接口创建支付订单
     
-    if request.subscription_type == SubscriptionType.TRIAL:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot subscribe to trial plan"
-        )
-    
-    await redis_service.update_subscription(current_user.id, request.subscription_type)
-    
-    return {
-        "message": f"Successfully subscribed to {request.subscription_type} plan",
-        "subscription_type": request.subscription_type
-    }
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="此接口已弃用，请使用虎皮椒支付接口"
+    )
 
 
 @router.post("/logout")

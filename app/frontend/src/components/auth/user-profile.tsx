@@ -91,29 +91,78 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
     if (!token) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/subscribe`, {
+      // 调用支付创建接口
+      const response = await fetch(`${API_BASE_URL}/payment/create?subscription_type=${subscriptionType}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          subscription_type: subscriptionType,
-          payment_method: 'stripe'
-        }),
+        }
       });
 
       if (response.ok) {
-        await refreshUser();
-        await fetchProfile();
-        alert('订阅成功！');
+        const result = await response.json();
+        if (result.status === 'success' && result.data.payment_url) {
+          // 打开支付链接
+          window.open(result.data.payment_url, '_blank');
+          
+          // 开始轮询支付结果
+          const tradeOrderId = result.data.trade_order_id;
+          startPollingPaymentStatus(tradeOrderId);
+        } else {
+          setError('获取支付链接失败');
+        }
       } else {
         const error = await response.json();
-        setError(error.detail || '订阅失败');
+        setError(error.detail || '创建支付订单失败');
       }
     } catch (err) {
       setError('网络错误');
     }
+  };
+  
+  // 轮询支付状态
+  const startPollingPaymentStatus = (tradeOrderId: string) => {
+    const pollInterval = 3000; // 3秒轮询一次
+    const maxAttempts = 20; // 最多轮询20次，约1分钟
+    let attempts = 0;
+    
+    const pollPaymentStatus = async () => {
+      if (attempts >= maxAttempts) {
+        console.log('支付轮询超时');
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/payment/query/${tradeOrderId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.status === 'success' && result.data) {
+            // 检查支付状态
+            if (result.data.status === 'OD') { // OD表示支付成功
+              // 支付成功，刷新用户信息
+              await refreshUser();
+              await fetchProfile();
+              alert('支付成功，订阅已更新！');
+              return; // 结束轮询
+            }
+          }
+        }
+      } catch (err) {
+        console.error('查询支付状态出错:', err);
+      }
+      
+      attempts++;
+      setTimeout(pollPaymentStatus, pollInterval);
+    };
+    
+    // 开始轮询
+    setTimeout(pollPaymentStatus, pollInterval);
   };
 
   useEffect(() => {
