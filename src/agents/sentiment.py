@@ -71,15 +71,31 @@ def sentiment_analyst_agent(state: AgentState):
         confidence = 0  # Default confidence when there are no signals
         if total_weighted_signals > 0:
             confidence = round((max(bullish_signals, bearish_signals) / total_weighted_signals) * 100, 2)
-        reasoning = f"Weighted Bullish signals: {bullish_signals:.1f}, Weighted Bearish signals: {bearish_signals:.1f}"
+        
+        # Generate detailed reasoning
+        reasoning_parts = []
+        reasoning_parts.append(f"情感分析结果: {overall_signal} (置信度: {confidence}%)")
+        reasoning_parts.append(f"\n数据来源分析:")
+        reasoning_parts.append(f"• 内部人交易: {len(insider_signals)}条记录 (权重: {insider_weight*100}%)")
+        reasoning_parts.append(f"  - 看涨信号: {insider_signals.count('bullish')}条")
+        reasoning_parts.append(f"  - 看跌信号: {insider_signals.count('bearish')}条")
+        reasoning_parts.append(f"• 公司新闻: {len(news_signals)}条记录 (权重: {news_weight*100}%)")
+        reasoning_parts.append(f"  - 看涨信号: {news_signals.count('bullish')}条")
+        reasoning_parts.append(f"  - 看跌信号: {news_signals.count('bearish')}条")
+        reasoning_parts.append(f"  - 中性信号: {news_signals.count('neutral')}条")
+        reasoning_parts.append(f"\n加权信号统计:")
+        reasoning_parts.append(f"• 加权看涨信号: {bullish_signals:.1f}")
+        reasoning_parts.append(f"• 加权看跌信号: {bearish_signals:.1f}")
+        
+        detailed_reasoning = "\n".join(reasoning_parts)
 
         sentiment_analysis[ticker] = {
             "signal": overall_signal,
             "confidence": confidence,
-            "reasoning": reasoning,
+            "reasoning": detailed_reasoning,
         }
 
-        progress.update_status("sentiment_analyst_agent", ticker, "Done", analysis=json.dumps(reasoning, indent=4))
+        progress.update_status("sentiment_analyst_agent", ticker, "Done", analysis=detailed_reasoning)
 
     # Create the sentiment message
     message = HumanMessage(

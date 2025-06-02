@@ -126,7 +126,7 @@ def valuation_analyst_agent(state: AgentState):
         signal = "bullish" if weighted_gap > 0.15 else "bearish" if weighted_gap < -0.15 else "neutral"
         confidence = round(min(abs(weighted_gap) / 0.30 * 100, 100))
 
-        reasoning = {
+        reasoning_dict = {
             f"{m}_analysis": {
                 "signal": (
                     "bullish" if vals["gap"] and vals["gap"] > 0.15 else
@@ -139,13 +139,38 @@ def valuation_analyst_agent(state: AgentState):
             }
             for m, vals in method_values.items() if vals["value"] > 0
         }
+        
+        # Generate detailed reasoning text
+        reasoning_parts = []
+        reasoning_parts.append(f"估值分析结果: {signal} (置信度: {confidence}%)")
+        reasoning_parts.append(f"当前市值: ${market_cap:,.2f}")
+        reasoning_parts.append(f"加权估值差距: {weighted_gap:.1%}")
+        reasoning_parts.append(f"\n各估值方法分析:")
+        
+        method_names = {
+            "dcf": "现金流折现法(DCF)",
+            "owner_earnings": "股东收益法", 
+            "ev_ebitda": "企业价值/EBITDA法",
+            "residual_income": "剩余收益法"
+        }
+        
+        for method, vals in method_values.items():
+            if vals["value"] > 0:
+                method_name = method_names.get(method, method)
+                signal_text = "看涨" if vals["gap"] and vals["gap"] > 0.15 else "看跌" if vals["gap"] and vals["gap"] < -0.15 else "中性"
+                reasoning_parts.append(f"• {method_name}: {signal_text}")
+                reasoning_parts.append(f"  估值: ${vals['value']:,.2f}, 差距: {vals['gap']:.1%}, 权重: {vals['weight']*100:.0f}%")
+        
+        reasoning_parts.append(f"\n判断标准: 差距>15%为看涨, 差距<-15%为看跌, 其他为中性")
+        
+        detailed_reasoning = "\n".join(reasoning_parts)
 
         valuation_analysis[ticker] = {
             "signal": signal,
             "confidence": confidence,
-            "reasoning": reasoning,
+            "reasoning": detailed_reasoning,
         }
-        progress.update_status("valuation_analyst_agent", ticker, "Done", analysis=json.dumps(reasoning, indent=4))
+        progress.update_status("valuation_analyst_agent", ticker, "Done", analysis=detailed_reasoning)
 
     # ---- Emit message (for LLM tool chain) ----
     msg = HumanMessage(content=json.dumps(valuation_analysis), name="valuation_analyst_agent")

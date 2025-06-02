@@ -132,13 +132,31 @@ def fundamentals_analyst_agent(state: AgentState):
         total_signals = len(signals)
         confidence = round(max(bullish_signals, bearish_signals) / total_signals, 2) * 100
 
+        # Generate detailed reasoning text
+        reasoning_text_parts = []
+        reasoning_text_parts.append(f"基本面分析结果: {overall_signal} (置信度: {confidence}%)")
+        reasoning_text_parts.append(f"\n分析维度:")
+        
+        for key, value in reasoning.items():
+            dimension_name = {
+                "profitability_signal": "盈利能力",
+                "growth_signal": "成长性", 
+                "financial_health_signal": "财务健康度",
+                "price_ratios_signal": "估值水平"
+            }.get(key, key)
+            reasoning_text_parts.append(f"• {dimension_name}: {value['signal']} - {value['details']}")
+        
+        reasoning_text_parts.append(f"\n信号统计: 看涨{bullish_signals}个, 看跌{bearish_signals}个, 中性{signals.count('neutral')}个")
+        
+        detailed_reasoning_text = "\n".join(reasoning_text_parts)
+
         fundamental_analysis[ticker] = {
             "signal": overall_signal,
             "confidence": confidence,
-            "reasoning": reasoning,
+            "reasoning": detailed_reasoning_text,
         }
 
-        progress.update_status("fundamentals_analyst_agent", ticker, "Done", analysis=json.dumps(reasoning, indent=4))
+        progress.update_status("fundamentals_analyst_agent", ticker, "Done", analysis=detailed_reasoning_text)
 
     # Create the fundamental analysis message
     message = HumanMessage(
