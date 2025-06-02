@@ -363,7 +363,7 @@ def _generate_burry_output(
                 Analysis Data for {ticker}:
                 {analysis_data}
 
-                Return the trading signal in the following JSON format exactly:
+                Return the trading signal in the following JSON format exactly and please use chinese to reply:
                 {{
                   "signal": "bullish" | "bearish" | "neutral",
                   "confidence": float between 0 and 100,

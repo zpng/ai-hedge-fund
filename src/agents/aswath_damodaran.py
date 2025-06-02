@@ -390,7 +390,7 @@ def generate_damodaran_output(
                 Analysis data:
                 {analysis_data}
 
-                Respond EXACTLY in this JSON schema:
+                Respond EXACTLY in this JSON schema and please use chinese to reply:
                 {{
                   "signal": "bullish" | "bearish" | "neutral",
                   "confidence": float (0‑100),

@@ -185,7 +185,27 @@ export function TextOutputDialog({
                                 </div>
                               </CardHeader>
                               <CardContent className="pt-3">
-                                <p className="text-sm whitespace-pre-line">{signal.reasoning}</p>
+                                {typeof signal.reasoning === 'string' ? (
+                                  <p className="text-sm whitespace-pre-line">{signal.reasoning}</p>
+                                ) : signal.reasoning && typeof signal.reasoning === 'object' ? (
+                                  <div className="space-y-3">
+                                    {Object.entries(signal.reasoning).map(([key, value]: [string, any]) => (
+                                      <div key={key} className="border-l-2 border-muted pl-3">
+                                        <h4 className="text-sm font-medium capitalize mb-1">
+                                          {key.replace(/_/g, ' ')}
+                                        </h4>
+                                        <div className="flex items-center gap-2 mb-1">
+                                          {value.signal && getSignalBadge(value.signal)}
+                                        </div>
+                                        {value.details && (
+                                          <p className="text-xs text-muted-foreground">{value.details}</p>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground">No reasoning available</p>
+                                )}
                               </CardContent>
                             </Card>
                           );

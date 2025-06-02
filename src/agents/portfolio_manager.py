@@ -155,7 +155,7 @@ def generate_trading_decision(
               Current Margin Requirement: {margin_requirement}
               Total Margin Used: {total_margin_used}
 
-              Output strictly in JSON with the following structure:
+              Output strictly in JSON with the following structure and please use chinese to reply:
               {{
                 "decisions": {{
                   "TICKER1": {{

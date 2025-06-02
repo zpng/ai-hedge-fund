@@ -436,7 +436,7 @@ def generate_ackman_output(
             Analysis Data for {ticker}:
             {analysis_data}
 
-            Return your output in strictly valid JSON:
+            Return your output in strictly valid JSON and please use chinese to reply:
             {{
               "signal": "bullish" | "bearish" | "neutral",
               "confidence": float (0-100),

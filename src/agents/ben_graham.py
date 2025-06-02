@@ -321,7 +321,7 @@ def generate_graham_output(
             Analysis Data for {ticker}:
             {analysis_data}
 
-            Return JSON exactly in this format:
+            Return JSON exactly in this format and please use chinese to reply:
             {{
               "signal": "bullish" or "bearish" or "neutral",
               "confidence": float (0-100),

@@ -568,7 +568,7 @@ def generate_druckenmiller_output(
               Analysis Data for {ticker}:
               {analysis_data}
 
-              Return the trading signal in this JSON format:
+              Return the trading signal in this JSON format and please use chinese to reply:
               {{
                 "signal": "bullish/bearish/neutral",
                 "confidence": float (0-100),

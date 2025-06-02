@@ -483,7 +483,7 @@ def generate_lynch_output(
                 Analysis Data:
                 {analysis_data}
 
-                Return only valid JSON with "signal", "confidence", and "reasoning".
+                Return only valid JSON with "signal", "confidence", and "reasoning" and please use chinese to reply.
                 """,
             ),
         ]
