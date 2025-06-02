@@ -35,12 +35,20 @@ export const api = {
     const controller = new AbortController();
     const { signal } = controller;
 
+    // Get auth token from localStorage
+    const token = localStorage.getItem('auth_token');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     // Make a POST request with the JSON body
     fetch(`${API_BASE_URL}/hedge-fund/run`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(params),
       signal,
     })
@@ -169,4 +177,4 @@ export const api = {
       controller.abort();
     };
   },
-}; 
+};

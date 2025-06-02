@@ -1,11 +1,15 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 import asyncio
 
 from app.backend.models.schemas import ErrorResponse, HedgeFundRequest
 from app.backend.models.events import StartEvent, ProgressUpdateEvent, ErrorEvent, CompleteEvent
+from app.backend.models.user import User
 from app.backend.services.graph import create_graph, parse_hedge_fund_response, run_graph_async
 from app.backend.services.portfolio import create_portfolio
+from app.backend.services.auth_service import AuthService
+from app.backend.dependencies import get_auth_service
+from app.backend.routes.auth import get_current_user
 from src.utils.progress import progress
 
 router = APIRouter(prefix="/hedge-fund")
@@ -16,11 +20,24 @@ router = APIRouter(prefix="/hedge-fund")
     responses={
         200: {"description": "Successful response with streaming updates"},
         400: {"model": ErrorResponse, "description": "Invalid request parameters"},
+        401: {"description": "Authentication required"},
+        403: {"description": "Insufficient API calls remaining"},
         500: {"model": ErrorResponse, "description": "Internal server error"},
     },
 )
-async def run_hedge_fund(request: HedgeFundRequest):
+async def run_hedge_fund(
+    request: HedgeFundRequest,
+    current_user: User = Depends(get_current_user),
+    auth_service: AuthService = Depends(get_auth_service)
+):
     try:
+        # Check if user has API access
+        if not await auth_service.check_api_access(current_user):
+            raise HTTPException(
+                status_code=403,
+                detail="Insufficient API calls remaining. Please upgrade your subscription."
+            )
+        
         # Create the portfolio
         portfolio = create_portfolio(request.initial_cash, request.margin_requirement, request.tickers)
 
