@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/auth-context';
+import { useNavigate } from 'react-router-dom';
 
 interface InviteCode {
   code: string;
@@ -36,6 +37,7 @@ export function UserProfile({ onGoToComponents }: UserProfileProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isGeneratingCodes, setIsGeneratingCodes] = useState(false);
+  const navigate = useNavigate();
 
   const fetchProfile = async () => {
     if (!token) return;
@@ -151,6 +153,11 @@ export function UserProfile({ onGoToComponents }: UserProfileProps) {
     }
   };
 
+  const handleGoToComponents = () => {
+    // 直接使用navigate进行导航，不再依赖回调函数
+    navigate('/components');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -159,14 +166,12 @@ export function UserProfile({ onGoToComponents }: UserProfileProps) {
             <h1 className="text-3xl font-bold text-gray-900">个人中心</h1>
             <p className="mt-2 text-gray-600">管理您的账户信息和订阅</p>
           </div>
-          {onGoToComponents && (
-            <Button 
-              onClick={onGoToComponents}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              进入组件页面
-            </Button>
-          )}
+          <Button 
+            onClick={handleGoToComponents}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            进入组件页面
+          </Button>
         </div>
 
         {error && (
@@ -198,36 +203,14 @@ export function UserProfile({ onGoToComponents }: UserProfileProps) {
                   </Badge>
                 </div>
               </div>
-              {profile.subscription_info.expires_at && (
+              {profile.subscription_info.type === 'trial' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">到期时间</label>
+                  <label className="block text-sm font-medium text-gray-700">剩余API调用次数</label>
                   <div className="mt-1 text-sm text-gray-900">
-                    {new Date(profile.subscription_info.expires_at).toLocaleDateString('zh-CN')}
+                    {profile.subscription_info.api_calls_remaining}
                   </div>
                 </div>
               )}
-            </div>
-          </Card>
-
-          {/* API使用情况 */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">API使用情况</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">剩余调用次数</label>
-                <div className="mt-1 text-2xl font-bold text-blue-600">
-                  {profile.subscription_info.type === 'trial' 
-                    ? profile.subscription_info.api_calls_remaining 
-                    : '无限制'
-                  }
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">总调用次数</label>
-                <div className="mt-1 text-lg text-gray-900">
-                  {profile.subscription_info.total_api_calls}
-                </div>
-              </div>
             </div>
           </Card>
 
@@ -236,7 +219,7 @@ export function UserProfile({ onGoToComponents }: UserProfileProps) {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">邀请码管理</h2>
               <Button 
-                onClick={generateInviteCodes}
+                onClick={generateInviteCodes} 
                 disabled={isGeneratingCodes}
                 size="sm"
               >
@@ -245,9 +228,9 @@ export function UserProfile({ onGoToComponents }: UserProfileProps) {
             </div>
             <div className="space-y-3">
               {profile.invite_codes.map((code) => (
-                <div key={code.code} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <div key={code.code} className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
                   <div>
-                    <div className="font-mono text-lg font-semibold">{code.code}</div>
+                    <div className="font-medium">{code.code}</div>
                     <div className="text-sm text-gray-600">
                       创建于 {new Date(code.created_at).toLocaleDateString('zh-CN')}
                     </div>

@@ -13,6 +13,7 @@ import {
 } from '@xyflow/react';
 import { useCallback, useState } from 'react';
 import { ArrowLeft, Home } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 import '@xyflow/react/dist/style.css';
 
@@ -32,6 +33,7 @@ export function Flow({ className = '', onGoToHome }: FlowProps) {
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const proOptions = { hideAttribution: true };
+  const navigate = useNavigate();
   
   // Initialize the flow when it first renders
   const onInit = useCallback(() => {
@@ -62,10 +64,18 @@ export function Flow({ className = '', onGoToHome }: FlowProps) {
     setEdges([]);
   }, [setNodes, setEdges]);
 
-  // Handle browser back button
+  // Handle back button
   const handleGoBack = useCallback(() => {
-    window.history.back();
-  }, []);
+    try {
+      navigate(-1); // 使用React Router的导航返回上一页
+    } catch (error) {
+      console.error('Navigation error:', error);
+      // 如果导航失败，尝试使用onGoToHome作为备选方案
+      if (onGoToHome) {
+        onGoToHome();
+      }
+    }
+  }, [navigate, onGoToHome]);
 
   return (
     <div className={`w-full h-full ${className}`}>
@@ -92,9 +102,9 @@ export function Flow({ className = '', onGoToHome }: FlowProps) {
           <div className="flex gap-2">
             <Button
               onClick={handleGoBack}
-              variant="outline"
+              variant="secondary"
               size="sm"
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 bg-white text-black hover:bg-gray-200 font-medium"
             >
               <ArrowLeft className="w-4 h-4" />
               返回
@@ -102,9 +112,9 @@ export function Flow({ className = '', onGoToHome }: FlowProps) {
             {onGoToHome && (
               <Button
                 onClick={onGoToHome}
-                variant="outline"
+                variant="secondary"
                 size="sm"
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 bg-white text-black hover:bg-gray-200 font-medium"
               >
                 <Home className="w-4 h-4" />
                 个人中心
@@ -113,6 +123,7 @@ export function Flow({ className = '', onGoToHome }: FlowProps) {
             <Button
               onClick={resetFlow}
               size="sm"
+              className="bg-white text-black hover:bg-gray-200 font-medium"
             >
               Reset Flow
             </Button>
