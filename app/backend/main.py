@@ -8,7 +8,12 @@ app = FastAPI(title="AI Hedge Fund API", description="Backend API for AI Hedge F
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],  # Frontend URLs
+    allow_origins=[
+        "http://localhost:5173", 
+        "http://127.0.0.1:5173",
+        "https://your-frontend-domain.zeabur.app",  # 添加前端域名
+        "https://*.zeabur.app"  # 允许所有Zeabur子域名
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
