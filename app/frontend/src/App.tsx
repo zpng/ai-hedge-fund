@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Flow } from './components/flow';
 import { Layout } from './components/layout';
 import { Login } from './components/auth/login';
@@ -9,8 +9,15 @@ import { Button } from './components/ui/button';
 function AppContent() {
   const [showLeftSidebar] = useState(false);
   const [showRightSidebar] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
+  const [showProfile, setShowProfile] = useState(true); // 默认显示个人中心
   const { isAuthenticated, isLoading, user, logout } = useAuth();
+
+  // 登录后自动显示个人中心页面
+  useEffect(() => {
+    if (isAuthenticated) {
+      setShowProfile(true);
+    }
+  }, [isAuthenticated]);
 
   if (isLoading) {
     return (
@@ -25,7 +32,9 @@ function AppContent() {
   }
 
   if (showProfile) {
-    return <UserProfile />;
+    return (
+      <UserProfile onGoToComponents={() => setShowProfile(false)} />
+    );
   }
 
   return (

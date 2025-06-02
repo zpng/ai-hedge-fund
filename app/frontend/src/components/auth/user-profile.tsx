@@ -24,9 +24,13 @@ interface UserProfile {
   };
 }
 
+interface UserProfileProps {
+  onGoToComponents?: () => void;
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-export function UserProfile() {
+export function UserProfile({ onGoToComponents }: UserProfileProps) {
   const { user, token, logout, refreshUser } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -150,9 +154,19 @@ export function UserProfile() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">用户设置</h1>
-          <p className="mt-2 text-gray-600">管理您的账户信息和订阅</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">个人中心</h1>
+            <p className="mt-2 text-gray-600">管理您的账户信息和订阅</p>
+          </div>
+          {onGoToComponents && (
+            <Button 
+              onClick={onGoToComponents}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              进入组件页面
+            </Button>
+          )}
         </div>
 
         {error && (
