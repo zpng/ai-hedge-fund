@@ -153,7 +153,7 @@ export function TextOutputDialog({
           {/* Analyst Signals Section */}
           <section>
             <h2 className="text-lg font-semibold mb-4">Analyst Signals</h2>
-            <Accordion type="multiple" className="w-full">
+            <Accordion type="multiple" defaultValue={tickers.length > 0 ? [tickers[0]] : []} className="w-full">
               {tickers.map(ticker => (
                 <AccordionItem key={ticker} value={ticker}>
                   <AccordionTrigger className="text-base font-medium px-4 py-3 bg-muted/30 rounded-md hover:bg-muted/50">
