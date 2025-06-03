@@ -228,7 +228,7 @@ start_services() {
     print_status "Starting backend server..."
     cd backend
     # Run backend in background but redirect output to terminal
-    poetry run uvicorn main:app --reload 2>&1 | tee "$BACKEND_LOG" &
+    poetry run uvicorn main:app --host 0.0.0.0 --port 8080 --reload 2>&1 | tee "$BACKEND_LOG" &
     BACKEND_PID=$!
     cd ..
     
