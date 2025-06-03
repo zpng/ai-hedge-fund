@@ -20,7 +20,7 @@ import '@xyflow/react/dist/style.css';
 
 import { AppNode } from '@/nodes/types';
 import { edgeTypes } from '../edges';
-import { initialNodes, nodeTypes } from '../nodes';
+import { initialNodes, initialEdges, nodeTypes } from '../nodes';
 import { Button } from './ui/button';
 
 type FlowProps = {
@@ -31,7 +31,7 @@ type FlowProps = {
 export function Flow({ className = '', onGoToHome }: FlowProps) {
   const [colorMode] = useState<ColorMode>('dark');
   const [nodes, setNodes, onNodesChange] = useNodesState<AppNode>(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialEdges);
   const [isInitialized, setIsInitialized] = useState(false);
   const proOptions = { hideAttribution: true };
   const navigate = useNavigate();
@@ -64,7 +64,7 @@ export function Flow({ className = '', onGoToHome }: FlowProps) {
   const resetFlow = useCallback(() => {
     try {
       setNodes(initialNodes);
-      setEdges([]);
+      setEdges(initialEdges);
       toast({
         title: "流程已重置",
         description: "所有节点和连接已恢复到初始状态",
