@@ -5,6 +5,7 @@ import { JsonOutputNode } from './components/json-output-node';
 import { TextInputNode } from './components/text-input-node';
 import { TextOutputNode } from './components/text-output-node';
 import { type AppNode } from './types';
+import { agents } from '@/data/agents';
 
 // Types
 export * from './types';
