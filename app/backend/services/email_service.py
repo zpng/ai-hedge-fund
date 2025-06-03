@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 class EmailService:
     def __init__(self):
         self.api_key = os.getenv("ELASTIC_EMAIL_API_KEY")
-        self.from_email = os.getenv("EMAIL_FROM", "noreply@aihedgefund.com")
+        self.from_email = os.getenv("EMAIL_FROM", "noreply@aistockselect.com")
         self.from_name = os.getenv("EMAIL_FROM_NAME", "AI对冲基金")
         self.api_url = "https://api.elasticemail.com/v2/email/send"
         
