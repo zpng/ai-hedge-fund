@@ -73,7 +73,7 @@ function AppContent() {
             <div className="p-4 text-white space-y-4">
               <div className="text-sm">
                 <div className="font-semibold">用户信息</div>
-                <div>手机号: {user?.phone}</div>
+                <div>邮箱: {user?.email}</div>
                 <div>订阅: {user?.subscription_type === 'trial' ? '试用版' : user?.subscription_type === 'monthly' ? '月付会员' : '年付会员'}</div>
                 {user?.subscription_type === 'trial' && (
                   <div>剩余调用: {user?.api_calls_remaining}</div>

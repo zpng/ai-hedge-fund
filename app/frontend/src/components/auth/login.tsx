@@ -283,12 +283,12 @@ export function Login() {
                         />
                         <Button 
                           type="button" 
-                          onClick={handleSendCode} 
+                          onClick={handleVerifyEmail} 
                           className="mt-1" 
                           disabled={isLoading}
                           variant="outline"
                         >
-                          重新发送
+                          验证
                         </Button>
                       </div>
                     </div>
