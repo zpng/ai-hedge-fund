@@ -152,7 +152,7 @@ class PaymentService:
             response = requests.post(self.query_url, json=params)
             query_response = XunhuQueryResponse(**response.json())
             
-            if query_response.status == 0 and query_response.data:
+            if query_response.errcode == 0 and query_response.data:
                 # 获取支付记录
                 payment_record = await self._get_payment_record_by_trade_order_id(trade_order_id)
                 if payment_record:
@@ -169,7 +169,7 @@ class PaymentService:
                 
                 return query_response.data
             else:
-                error_msg = {"status": "error", "message": query_response.message}
+                error_msg = {"status": "error", "message": query_response.errmsg}
                 logger.error(f"查询支付状态失败: {error_msg}")
                 return error_msg
         except Exception as e:

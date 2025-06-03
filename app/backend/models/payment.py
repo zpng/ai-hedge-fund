@@ -50,9 +50,10 @@ class XunhuQueryRequest(BaseModel):
 
 class XunhuQueryResponse(BaseModel):
     """虎皮椒订单查询响应参数"""
-    status: int  # 状态码，0表示成功
-    message: str  # 状态信息
+    errcode: int  # 状态码，0表示成功
+    errmsg: str  # 状态信息
     data: Optional[dict] = None  # 订单数据
+    hash: Optional[str] = None  # 签名
 
 
 class PaymentNotification(BaseModel):
