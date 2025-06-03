@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/auth-context';
+import { useToast } from '@/hooks/use-toast';
 
 export function Login() {
   const [phone, setPhone] = useState('');
@@ -14,11 +15,16 @@ export function Login() {
   const [_codeSent, setCodeSent] = useState(false);
 
   const { sendVerificationCode, login } = useAuth();
+  const { toast } = useToast();
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phone.trim()) {
-      setError('请输入手机号');
+      toast({
+        variant: "destructive",
+        title: "输入错误",
+        description: "请输入手机号",
+      });
       return;
     }
 
@@ -29,8 +35,19 @@ export function Login() {
       await sendVerificationCode(phone);
       setCodeSent(true);
       setStep('verify');
+      toast({
+        variant: "success",
+        title: "发送成功",
+        description: "验证码已发送到您的手机",
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : '发送验证码失败');
+      const errorMessage = err instanceof Error ? err.message : '发送验证码失败';
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "发送失败",
+        description: errorMessage,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -39,7 +56,11 @@ export function Login() {
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!code.trim()) {
-      setError('请输入验证码');
+      toast({
+        variant: "destructive",
+        title: "输入错误",
+        description: "请输入验证码",
+      });
       return;
     }
 
@@ -48,8 +69,19 @@ export function Login() {
 
     try {
       await login(phone, code, inviteCode || undefined);
+      toast({
+        variant: "success",
+        title: "登录成功",
+        description: "欢迎使用AI对冲基金系统",
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : '登录失败');
+      const errorMessage = err instanceof Error ? err.message : '登录失败';
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "登录失败",
+        description: errorMessage,
+      });
     } finally {
       setIsLoading(false);
     }

@@ -6,6 +6,7 @@ import { Login } from './components/auth/login';
 import { UserProfile } from './components/auth/user-profile';
 import { AuthProvider, useAuth } from './contexts/auth-context';
 import { Button } from './components/ui/button';
+import { Toaster } from './components/ui/toaster';
 
 function AppContent() {
   const [showLeftSidebar] = useState(false);
@@ -81,6 +82,7 @@ export default function App() {
   return (
     <AuthProvider>
       <AppContent />
+      <Toaster />
     </AuthProvider>
   );
 }

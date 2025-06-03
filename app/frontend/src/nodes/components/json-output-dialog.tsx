@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { createHighlightedJson, formatContent } from '@/utils/text-utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface JsonOutputDialogProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export function JsonOutputDialog({
 }: JsonOutputDialogProps) {
   const [copySuccess, setCopySuccess] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const { toast } = useToast();
 
   if (!outputNodeData) return null;
 
@@ -33,9 +35,19 @@ export function JsonOutputDialog({
       .then(() => {
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 2000);
+        toast({
+          variant: "success",
+          title: "复制成功",
+          description: "JSON数据已复制到剪贴板",
+        });
       })
       .catch(err => {
         console.error('Failed to copy text: ', err);
+        toast({
+          variant: "destructive",
+          title: "复制失败",
+          description: "无法复制到剪贴板，请手动复制",
+        });
       });
   };
 
@@ -53,8 +65,18 @@ export function JsonOutputDialog({
       
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 2000);
+      toast({
+        variant: "success",
+        title: "下载成功",
+        description: "JSON文件已保存到本地",
+      });
     } catch (err) {
       console.error('Failed to download JSON: ', err);
+      toast({
+        variant: "destructive",
+        title: "下载失败",
+        description: "无法下载文件，请重试",
+      });
     }
   };
 
@@ -114,4 +136,4 @@ export function JsonOutputDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}

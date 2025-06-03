@@ -2,6 +2,7 @@ import { ModelSelector } from '@/components/ui/llm-selector';
 import { getConnectedEdges, useReactFlow, type NodeProps } from '@xyflow/react';
 import { Bot, Loader2, Play } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,7 @@ export function TextInputNode({
   const { resetAllNodes, agentNodeData } = nodeContext;
   const { getNodes, getEdges } = useReactFlow();
   const abortControllerRef = useRef<(() => void) | null>(null);
+  const { toast } = useToast();
   
   // Check if any agent is in progress
   const isProcessing = Object.values(agentNodeData).some(
@@ -63,52 +65,87 @@ export function TextInputNode({
   };
 
   const handlePlay = () => {
-    // First, reset all nodes to IDLE
-    resetAllNodes();
-    
-    // Clean up any existing connection
-    if (abortControllerRef.current) {
-      abortControllerRef.current();
+    try {
+      // Validate input
+      if (!tickers.trim()) {
+        toast({
+          variant: "destructive",
+          title: "输入错误",
+          description: "请输入股票代码",
+        });
+        return;
+      }
+
+      // First, reset all nodes to IDLE
+      resetAllNodes();
+      
+      // Clean up any existing connection
+      if (abortControllerRef.current) {
+        abortControllerRef.current();
+      }
+      
+      // Call the backend API with SSE
+      const tickerList = tickers.split(',').map(t => t.trim());
+      
+      // Get the nodes and edges
+      const nodes = getNodes();
+      const edges = getEdges();
+      const connectedEdges = getConnectedEdges(nodes, edges);
+      
+      // Get all nodes that are agents and are connected in the flow
+      const selectedAgents = new Set<string>();
+      
+      // First, collect all the target node IDs from connected edges
+      const connectedNodeIds = new Set<string>();
+      connectedEdges.forEach(edge => {
+        if (edge.source === id) {
+          connectedNodeIds.add(edge.target);
+        }
+      });
+      
+      // Then filter for nodes that are agents
+      nodes.forEach(node => {
+        if (node.type === 'agent-node' && connectedNodeIds.has(node.id)) {
+          selectedAgents.add(node.id);
+        }
+      });
+
+      // Check if any agents are connected
+      if (selectedAgents.size === 0) {
+        toast({
+          variant: "destructive",
+          title: "连接错误",
+          description: "请连接至少一个分析师节点",
+        });
+        return;
+      }
+          
+      abortControllerRef.current = api.runHedgeFund(
+        {
+          tickers: tickerList,
+          selected_agents: Array.from(selectedAgents),
+          model_name: selectedModel?.model_name || undefined,
+          model_provider: selectedModel?.provider as any || undefined,
+          start_date: startDate,
+          end_date: endDate,
+        },
+        // Pass the node status context to the API
+        nodeContext
+      );
+
+      toast({
+        variant: "success",
+        title: "分析开始",
+        description: "AI分析师正在处理您的请求...",
+      });
+    } catch (error) {
+      console.error('Error starting analysis:', error);
+      toast({
+        variant: "destructive",
+        title: "启动失败",
+        description: "无法启动分析，请重试",
+      });
     }
-    
-    // Call the backend API with SSE
-    const tickerList = tickers.split(',').map(t => t.trim());
-    
-    // Get the nodes and edges
-    const nodes = getNodes();
-    const edges = getEdges();
-    const connectedEdges = getConnectedEdges(nodes, edges);
-    
-    // Get all nodes that are agents and are connected in the flow
-    const selectedAgents = new Set<string>();
-    
-    // First, collect all the target node IDs from connected edges
-    const connectedNodeIds = new Set<string>();
-    connectedEdges.forEach(edge => {
-      if (edge.source === id) {
-        connectedNodeIds.add(edge.target);
-      }
-    });
-    
-    // Then filter for nodes that are agents
-    nodes.forEach(node => {
-      if (node.type === 'agent-node' && connectedNodeIds.has(node.id)) {
-        selectedAgents.add(node.id);
-      }
-    });
-        
-    abortControllerRef.current = api.runHedgeFund(
-      {
-        tickers: tickerList,
-        selected_agents: Array.from(selectedAgents),
-        model_name: selectedModel?.model_name || undefined,
-        model_provider: selectedModel?.provider as any || undefined,
-        start_date: startDate,
-        end_date: endDate,
-      },
-      // Pass the node status context to the API
-      nodeContext
-    );
   };
 
   return (

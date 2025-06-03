@@ -10,6 +10,7 @@ import { formatTimeFromTimestamp } from '@/utils/date-utils';
 import { createHighlightedJson, formatContent } from '@/utils/text-utils';
 import { AlignJustify, Copy, Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 interface AgentOutputDialogProps {
   isOpen: boolean;
@@ -30,6 +31,7 @@ export function AgentOutputDialog({
   const [copySuccess, setCopySuccess] = useState(false);
   const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
   const initialFocusRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   // Collect all analysis from all messages into a single analysis dictionary
   const allAnalysis = messages.reduce<Record<string, string>>((acc, msg) => {
@@ -75,9 +77,19 @@ export function AgentOutputDialog({
         .then(() => {
           setCopySuccess(true);
           setTimeout(() => setCopySuccess(false), 2000);
+          toast({
+            variant: "success",
+            title: "复制成功",
+            description: "分析结果已复制到剪贴板",
+          });
         })
         .catch(err => {
           console.error('Failed to copy text: ', err);
+          toast({
+            variant: "destructive",
+            title: "复制失败",
+            description: "无法复制到剪贴板，请手动复制",
+          });
         });
     }
   };
@@ -227,4 +239,4 @@ export function AgentOutputDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}

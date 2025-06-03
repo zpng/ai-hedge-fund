@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/auth-context';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 interface InviteCode {
   code: string;
@@ -38,6 +39,7 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
   const [error, setError] = useState('');
   const [isGeneratingCodes, setIsGeneratingCodes] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const fetchProfile = async () => {
     if (!token) return;
@@ -78,10 +80,22 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
         await fetchProfile(); // Refresh profile to get new codes
       } else {
         const error = await response.json();
-        setError(error.detail || '生成邀请码失败');
+        const errorMessage = error.detail || '生成邀请码失败';
+        setError(errorMessage);
+        toast({
+          variant: "destructive",
+          title: "生成失败",
+          description: errorMessage,
+        });
       }
     } catch (err) {
-      setError('网络错误');
+      const errorMessage = '网络错误';
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "网络错误",
+        description: "请检查网络连接后重试",
+      });
     } finally {
       setIsGeneratingCodes(false);
     }
@@ -110,14 +124,32 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
           const tradeOrderId = result.data.trade_order_id;
           startPollingPaymentStatus(tradeOrderId);
         } else {
-          setError('获取支付链接失败');
+          const errorMessage = '获取支付链接失败';
+          setError(errorMessage);
+          toast({
+            variant: "destructive",
+            title: "支付失败",
+            description: errorMessage,
+          });
         }
       } else {
         const error = await response.json();
-        setError(error.detail || '创建支付订单失败');
+        const errorMessage = error.detail || '创建支付订单失败';
+        setError(errorMessage);
+        toast({
+          variant: "destructive",
+          title: "支付失败",
+          description: errorMessage,
+        });
       }
     } catch (err) {
-      setError('网络错误');
+      const errorMessage = '网络错误';
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "网络错误",
+        description: "请检查网络连接后重试",
+      });
     }
   };
   
@@ -148,13 +180,22 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
               // 支付成功，刷新用户信息
               await refreshUser();
               await fetchProfile();
-              alert('支付成功，订阅已更新！');
+              toast({
+                variant: "success",
+                title: "支付成功",
+                description: "订阅已更新，感谢您的支持！",
+              });
               return; // 结束轮询
             }
           }
         }
       } catch (err) {
         console.error('查询支付状态出错:', err);
+        toast({
+          variant: "destructive",
+          title: "查询失败",
+          description: "查询支付状态时出现错误",
+        });
       }
       
       attempts++;
