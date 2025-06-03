@@ -151,6 +151,6 @@ class AuthService:
         encoded_jwt = jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
         
         # Create session in Redis
-        self.redis_service.create_session(user_id, encoded_jwt)
+        self.redis_service.create_session(user_id)
         
         return encoded_jwt
