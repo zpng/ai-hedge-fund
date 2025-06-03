@@ -107,7 +107,7 @@ def get_model_info(model_name: str, model_provider: str) -> LLMModel | None:
 
 
 def get_model(model_name: str, model_provider: ModelProvider) -> ChatOpenAI | ChatGroq | ChatOllama | None:
-    base_url = os.getenv("BASE_URL")
+    base_url = os.getenv("MODEL_BASE_URL")
     if model_provider == ModelProvider.GROQ:
         api_key = os.getenv("GROQ_API_KEY")
         if not api_key:

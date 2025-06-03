@@ -1,10 +1,14 @@
 """Helper functions for LLM"""
 
 import json
+import logging
 from typing import TypeVar, Type, Optional, Any
 from pydantic import BaseModel
 from src.llm.models import get_model, get_model_info
 from src.utils.progress import progress
+
+# 获取日志记录器
+logger = logging.getLogger("ai-hedge-fund")
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -34,11 +38,23 @@ def call_llm(
         An instance of the specified Pydantic model
     """
 
+    logger.info(f"开始LLM调用: model_name={model_name}, model_provider={model_provider}")
+    
     model_info = get_model_info(model_name, model_provider)
-    llm = get_model(model_name, model_provider)
+    logger.info(f"获取到模型信息: {model_info}")
+    
+    try:
+        llm = get_model(model_name, model_provider)
+        logger.info(f"成功初始化LLM模型实例")
+    except Exception as e:
+        logger.error(f"初始化LLM模型失败: {str(e)}\n详细错误: {json.dumps({'model_name': model_name, 'model_provider': model_provider, 'error': str(e)})}")
+        if default_factory:
+            return default_factory()
+        return create_default_response(pydantic_model)
 
     # For non-JSON support models, we can use structured output
     if not (model_info and not model_info.has_json_mode()):
+        logger.info(f"使用JSON模式进行结构化输出")
         llm = llm.with_structured_output(
             pydantic_model,
             method="json_mode",
@@ -47,29 +63,40 @@ def call_llm(
     # Call the LLM with retries
     for attempt in range(max_retries):
         try:
+            logger.info(f"尝试调用LLM (尝试 {attempt + 1}/{max_retries})")
             # Call the LLM
             result = llm.invoke(prompt)
+            logger.info(f"LLM调用成功")
 
             # For non-JSON support models, we need to extract and parse the JSON manually
             if model_info and not model_info.has_json_mode():
+                logger.info(f"从响应中提取JSON")
                 parsed_result = extract_json_from_response(result.content)
                 if parsed_result:
+                    logger.info(f"成功解析JSON响应")
                     return pydantic_model(**parsed_result)
+                else:
+                    logger.error(f"无法从响应中提取JSON: {result.content[:200]}...")
             else:
+                logger.info(f"直接返回结构化结果")
                 return result
 
         except Exception as e:
+            error_msg = f"LLM调用错误 (尝试 {attempt + 1}/{max_retries}): {str(e)}"
+            logger.error(f"{error_msg}\n详细错误信息: {json.dumps({'model_name': model_name, 'model_provider': model_provider, 'attempt': attempt + 1, 'error': str(e)})}")
+            
             if agent_name:
                 progress.update_status(agent_name, None, f"Error - retry {attempt + 1}/{max_retries}")
 
             if attempt == max_retries - 1:
-                print(f"Error in LLM call after {max_retries} attempts: {e}")
+                logger.error(f"LLM调用在{max_retries}次尝试后失败: {str(e)}")
                 # Use default_factory if provided, otherwise create a basic default
                 if default_factory:
                     return default_factory()
                 return create_default_response(pydantic_model)
 
     # This should never be reached due to the retry logic above
+    logger.warning("意外情况: 达到了不应该到达的代码点，返回默认响应")
     return create_default_response(pydantic_model)
 
 
@@ -98,13 +125,20 @@ def create_default_response(model_class: Type[T]) -> T:
 def extract_json_from_response(content: str) -> Optional[dict]:
     """Extracts JSON from markdown-formatted response."""
     try:
+        logger.info(f"尝试从响应中提取JSON")
         json_start = content.find("```json")
         if json_start != -1:
             json_text = content[json_start + 7 :]  # Skip past ```json
             json_end = json_text.find("```")
             if json_end != -1:
                 json_text = json_text[:json_end].strip()
-                return json.loads(json_text)
+                parsed_json = json.loads(json_text)
+                logger.info(f"成功从响应中提取JSON")
+                return parsed_json
+            else:
+                logger.warning(f"在响应中找不到JSON结束标记```")
+        else:
+            logger.warning(f"在响应中找不到JSON开始标记```json")
     except Exception as e:
-        print(f"Error extracting JSON from response: {e}")
+        logger.error(f"从响应中提取JSON时出错: {str(e)}\n响应内容: {content[:200]}...")
     return None
