@@ -118,7 +118,7 @@ def get_model_info(model_name: str, model_provider: str) -> LLMModel | None:
 
 def get_model(model_name: str, model_provider: ModelProvider) -> ChatOpenAI | ChatGroq | ChatOllama | None:
     logger.info(f"初始化模型: model_name={model_name}, model_provider={model_provider}")
-    base_url = os.getenv("BASE_URL")
+    base_url = os.getenv("MODEL_BASE_URL")
     if base_url:
         logger.info(f"使用自定义BASE_URL: {base_url}")
     
