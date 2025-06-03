@@ -46,7 +46,7 @@ export const initialNodes: AppNode[] = [
       status: 'Idle',
     },
   })),
-];
+] as AppNode[];
 
 // Create edges connecting input to all agents and all agents to output
 export const initialEdges = [
