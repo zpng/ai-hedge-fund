@@ -12,11 +12,13 @@ class RedisService:
         self.redis_client = redis.from_url(redis_url, decode_responses=True)
     
     # User management
-    async def create_user(self, phone: str, invited_by: Optional[str] = None) -> User:
+    async def create_user(self, email: str, password: str, invited_by: Optional[str] = None) -> User:
         user_id = self._generate_user_id()
+        password_hash = User.hash_password(password)
         user = User(
             id=user_id,
-            phone=phone,
+            email=email,
+            password_hash=password_hash,
             created_at=datetime.now(),
             subscription_type=SubscriptionType.TRIAL,
             api_calls_remaining=5 if invited_by else 0,  # 5 free calls if invited
@@ -27,19 +29,25 @@ class RedisService:
         user_key = f"user:{user_id}"
         self.redis_client.hset(user_key, "data", user.model_dump_json())
         
-        # Index by phone
-        self.redis_client.set(f"phone:{phone}", user_id)
+        # Index by email
+        self.redis_client.set(f"email:{email}", user_id)
         
         # Generate initial invite codes for the user
         await self._generate_invite_codes(user_id, 5)
         
         return user
     
-    async def get_user_by_phone(self, phone: str) -> Optional[User]:
-        user_id = self.redis_client.get(f"phone:{phone}")
+    async def get_user_by_email(self, email: str) -> Optional[User]:
+        user_id = self.redis_client.get(f"email:{email}")
         if not user_id:
             return None
         return await self.get_user_by_id(user_id)
+        
+    async def verify_user_email(self, user_id: str) -> None:
+        user = await self.get_user_by_id(user_id)
+        if user:
+            user.email_verified = True
+            await self.update_user(user)
     
     async def get_user_by_id(self, user_id: str) -> Optional[User]:
         user_data = self.redis_client.hget(f"user:{user_id}", "data")
@@ -58,23 +66,23 @@ class RedisService:
             await self.update_user(user)
     
     # Verification code management
-    async def create_verification_code(self, phone: str) -> str:
+    async def create_verification_code(self, email: str) -> str:
         code = self._generate_verification_code()
         verification = VerificationCode(
-            phone=phone,
+            email=email,
             code=code,
             created_at=datetime.now(),
             expires_at=datetime.now() + timedelta(minutes=5)
         )
         
         # Store verification code (expires in 5 minutes)
-        key = f"verification:{phone}"
+        key = f"verification:{email}"
         self.redis_client.setex(key, 300, verification.model_dump_json())
         
         return code
     
-    async def verify_code(self, phone: str, code: str) -> bool:
-        key = f"verification:{phone}"
+    async def verify_code(self, email: str, code: str) -> bool:
+        key = f"verification:{email}"
         verification_data = self.redis_client.get(key)
         
         if not verification_data:

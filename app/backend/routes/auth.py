@@ -2,8 +2,9 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import List
 from app.backend.models.user import (
-    LoginRequest, VerifyCodeRequest, LoginResponse, UserProfile, 
-    SubscriptionRequest, ApiUsageResponse, User, SubscriptionType
+    LoginRequest, VerifyEmailRequest, RegisterRequest, SendVerificationRequest,
+    LoginResponse, UserProfile, SubscriptionRequest, ApiUsageResponse, 
+    User, SubscriptionType
 )
 from app.backend.services.auth_service import AuthService
 from app.backend.services.redis_service import RedisService
@@ -15,12 +16,12 @@ security = HTTPBearer()
 
 @router.post("/send-code")
 async def send_verification_code(
-    request: LoginRequest,
+    request: SendVerificationRequest,
     auth_service: AuthService = Depends(get_auth_service)
 ):
-    """Send verification code to phone number."""
+    """Send verification code to user's email."""
     try:
-        code = await auth_service.send_verification_code(request.phone)
+        code = await auth_service.send_verification_code(request.email)
         return {"message": "Verification code sent successfully", "code": code}  # Remove code in production
     except Exception as e:
         raise HTTPException(
@@ -29,17 +30,43 @@ async def send_verification_code(
         )
 
 
-@router.post("/verify", response_model=LoginResponse)
-async def verify_code_and_login(
-    request: VerifyCodeRequest,
+@router.post("/register")
+async def register_user(
+    request: RegisterRequest,
     auth_service: AuthService = Depends(get_auth_service)
 ):
-    """Verify code and login/register user."""
-    result = await auth_service.verify_and_login(
-        request.phone, 
-        request.code, 
+    """Register a new user with email and password."""
+    user = await auth_service.register(
+        request.email,
+        request.password,
         request.invite_code
     )
+    return {"message": "Registration successful. Please verify your email.", "user_id": user.id}
+
+
+@router.post("/verify-email")
+async def verify_email(
+    request: VerifyEmailRequest,
+    auth_service: AuthService = Depends(get_auth_service)
+):
+    """Verify user's email with verification code."""
+    result = await auth_service.verify_email(request.email, request.code)
+    if result:
+        return {"message": "Email verified successfully"}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired verification code"
+        )
+
+
+@router.post("/login", response_model=LoginResponse)
+async def login_user(
+    request: LoginRequest,
+    auth_service: AuthService = Depends(get_auth_service)
+):
+    """Login with email and password."""
+    result = await auth_service.login(request.email, request.password)
     return result
 
 

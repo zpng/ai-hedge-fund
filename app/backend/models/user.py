@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
+import hashlib
+import os
 
 
 class SubscriptionType(str, Enum):
@@ -18,7 +20,8 @@ class UserStatus(str, Enum):
 
 class User(BaseModel):
     id: str
-    phone: str
+    email: EmailStr
+    password_hash: str
     created_at: datetime
     last_login: Optional[datetime] = None
     status: UserStatus = UserStatus.ACTIVE
@@ -27,6 +30,22 @@ class User(BaseModel):
     api_calls_remaining: int = 0
     total_api_calls: int = 0
     invited_by: Optional[str] = None  # User ID who invited this user
+    email_verified: bool = False
+    
+    @staticmethod
+    def hash_password(password: str) -> str:
+        """Hash a password for storing."""
+        salt = os.urandom(32)  # 32 bytes salt
+        pwdhash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+        return salt.hex() + pwdhash.hex()
+    
+    @staticmethod
+    def verify_password(stored_password: str, provided_password: str) -> bool:
+        """Verify a stored password against one provided by user"""
+        salt = bytes.fromhex(stored_password[:64])
+        stored_hash = stored_password[64:]
+        pwdhash = hashlib.pbkdf2_hmac('sha256', provided_password.encode('utf-8'), salt, 100000).hex()
+        return pwdhash == stored_hash
 
 
 class InviteCode(BaseModel):
@@ -39,7 +58,7 @@ class InviteCode(BaseModel):
 
 
 class VerificationCode(BaseModel):
-    phone: str
+    email: EmailStr
     code: str
     created_at: datetime
     expires_at: datetime
@@ -47,13 +66,23 @@ class VerificationCode(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    phone: str = Field(..., description="User's phone number")
+    email: EmailStr = Field(..., description="User's email address")
+    password: str = Field(..., description="User's password")
 
 
-class VerifyCodeRequest(BaseModel):
-    phone: str = Field(..., description="User's phone number")
-    code: str = Field(..., description="Verification code")
+class RegisterRequest(BaseModel):
+    email: EmailStr = Field(..., description="User's email address")
+    password: str = Field(..., description="User's password")
     invite_code: Optional[str] = Field(None, description="Invite code for new users")
+
+
+class VerifyEmailRequest(BaseModel):
+    email: EmailStr = Field(..., description="User's email address")
+    code: str = Field(..., description="Verification code")
+
+
+class SendVerificationRequest(BaseModel):
+    email: EmailStr = Field(..., description="User's email address")
 
 
 class LoginResponse(BaseModel):

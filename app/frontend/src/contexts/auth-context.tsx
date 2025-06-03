@@ -2,7 +2,8 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 
 interface User {
   id: string;
-  phone: string;
+  email: string;
+  email_verified: boolean;
   created_at: string;
   last_login?: string;
   status: string;
@@ -18,9 +19,11 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (phone: string, code: string, inviteCode?: string) => Promise<void>;
+  register: (email: string, password: string, inviteCode?: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  sendVerificationCode: (phone: string) => Promise<void>;
+  sendVerificationCode: (email: string) => Promise<void>;
+  verifyEmail: (email: string, code: string) => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
@@ -68,13 +71,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  const sendVerificationCode = async (phone: string) => {
+  const register = async (email: string, password: string, inviteCode?: string) => {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        email, 
+        password, 
+        invite_code: inviteCode 
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Registration failed');
+    }
+
+    return response.json();
+  };
+
+  const sendVerificationCode = async (email: string) => {
     const response = await fetch(`${API_BASE_URL}/auth/send-code`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ phone }),
+      body: JSON.stringify({ email }),
     });
 
     if (!response.ok) {
@@ -85,17 +109,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return response.json();
   };
 
-  const login = async (phone: string, code: string, inviteCode?: string) => {
-    const response = await fetch(`${API_BASE_URL}/auth/verify`, {
+  const verifyEmail = async (email: string, code: string) => {
+    const response = await fetch(`${API_BASE_URL}/auth/verify-email`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
-        phone, 
-        code, 
-        invite_code: inviteCode 
-      }),
+      body: JSON.stringify({ email, code }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Email verification failed');
+    }
+
+    return response.json();
+  };
+
+  const login = async (email: string, password: string) => {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
     });
 
     if (!response.ok) {
@@ -139,9 +176,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     token,
     isAuthenticated,
     isLoading,
+    register,
     login,
     logout,
     sendVerificationCode,
+    verifyEmail,
     refreshUser,
   };
 

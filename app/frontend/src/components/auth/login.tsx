@@ -1,29 +1,34 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { useAuth } from '@/contexts/auth-context';
-import { useToast } from '@/hooks/use-toast';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/auth-context";
+import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function Login() {
-  const [phone, setPhone] = useState('');
-  const [code, setCode] = useState('');
-  const [inviteCode, setInviteCode] = useState('');
-  const [step, setStep] = useState<'phone' | 'verify'>('phone');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [_codeSent, setCodeSent] = useState(false);
-
-  const { sendVerificationCode, login } = useAuth();
+  const { register, login, sendVerificationCode, verifyEmail } = useAuth();
   const { toast } = useToast();
 
-  const handleSendCode = async (e: React.FormEvent) => {
+  const [email, setEmail] = React.useState("");
+  const [verificationCode, setVerificationCode] = React.useState("");
+  const [inviteCode, setInviteCode] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<"login" | "register">("login");
+  const [registrationStep, setRegistrationStep] = React.useState<"form" | "verify">("form");
+  const [error, setError] = React.useState<string | null>(null);
+  const [codeSent, setCodeSent] = React.useState(false);
+
+  // 登录处理
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phone.trim()) {
+    if (!email.trim() || !password.trim()) {
       toast({
         variant: "destructive",
         title: "输入错误",
-        description: "请输入手机号",
+        description: "请输入邮箱和密码",
       });
       return;
     }
@@ -32,45 +37,8 @@ export function Login() {
     setError('');
 
     try {
-      await sendVerificationCode(phone);
-      setCodeSent(true);
-      setStep('verify');
+      await login(email, password);
       toast({
-        variant: "success",
-        title: "发送成功",
-        description: "验证码已发送到您的手机",
-      });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '发送验证码失败';
-      setError(errorMessage);
-      toast({
-        variant: "destructive",
-        title: "发送失败",
-        description: errorMessage,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleVerifyCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code.trim()) {
-      toast({
-        variant: "destructive",
-        title: "输入错误",
-        description: "请输入验证码",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    setError('');
-
-    try {
-      await login(phone, code, inviteCode || undefined);
-      toast({
-        variant: "success",
         title: "登录成功",
         description: "欢迎使用AI对冲基金系统",
       });
@@ -87,9 +55,127 @@ export function Login() {
     }
   };
 
+  // 注册处理
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !password.trim()) {
+      toast({
+        variant: "destructive",
+        title: "输入错误",
+        description: "请输入邮箱和密码",
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "输入错误",
+        description: "两次输入的密码不一致",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      await register(email, password, inviteCode || undefined);
+      setRegistrationStep('verify');
+      await sendVerificationCode(email);
+      setCodeSent(true);
+      toast({
+        title: "注册成功",
+        description: "验证码已发送到您的邮箱，请验证邮箱完成注册",
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '注册失败';
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "注册失败",
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 发送验证码
+  const handleSendCode = async () => {
+    if (!email.trim()) {
+      toast({
+        variant: "destructive",
+        title: "输入错误",
+        description: "请输入邮箱",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      await sendVerificationCode(email);
+      setCodeSent(true);
+      toast({
+        title: "发送成功",
+        description: "验证码已发送到您的邮箱",
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '发送验证码失败';
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "发送失败",
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 验证邮箱
+  const handleVerifyEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!verificationCode.trim()) {
+      toast({
+        variant: "destructive",
+        title: "输入错误",
+        description: "请输入验证码",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      await verifyEmail(email, verificationCode);
+      toast({
+        title: "验证成功",
+        description: "邮箱验证成功，请登录",
+      });
+      setActiveTab('login');
+      setRegistrationStep('form');
+      setVerificationCode('');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '验证失败';
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "验证失败",
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 返回注册表单
   const handleBack = () => {
-    setStep('phone');
-    setCode('');
+    setRegistrationStep('form');
+    setVerificationCode('');
     setError('');
     setCodeSent(false);
   };
@@ -101,107 +187,201 @@ export function Login() {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             AI对冲基金
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            {step === 'phone' ? '请输入手机号获取验证码' : '请输入验证码登录'}
-          </p>
         </div>
 
-        <Card className="p-8">
-          {step === 'phone' ? (
-            <form onSubmit={handleSendCode} className="space-y-6">
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                  手机号
-                </label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="请输入手机号"
-                  className="mt-1"
-                  required
-                />
-              </div>
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'login' | 'register')}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="login">登录</TabsTrigger>
+            <TabsTrigger value="register">注册</TabsTrigger>
+          </TabsList>
 
-              <div>
-                <label htmlFor="inviteCode" className="block text-sm font-medium text-gray-700">
-                  邀请码 (可选)
-                </label>
-                <Input
-                  id="inviteCode"
-                  type="text"
-                  value={inviteCode}
-                  onChange={(e) => setInviteCode(e.target.value)}
-                  placeholder="输入邀请码可获得5次免费试用"
-                  className="mt-1"
-                />
-              </div>
-
-              {error && (
-                <div className="text-red-600 text-sm">
-                  {error}
+          <TabsContent value="login">
+            <Card className="p-8">
+              <form onSubmit={handleLogin} className="space-y-6">
+                <div>
+                  <label htmlFor="login-email" className="block text-sm font-medium text-gray-700">
+                    邮箱
+                  </label>
+                  <Input
+                    id="login-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="请输入邮箱"
+                    className="mt-1"
+                    required
+                  />
                 </div>
-              )}
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? '发送中...' : '发送验证码'}
-              </Button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyCode} className="space-y-6">
-              <div>
-                <label htmlFor="code" className="block text-sm font-medium text-gray-700">
-                  验证码
-                </label>
-                <Input
-                  id="code"
-                  type="text"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="请输入6位验证码"
-                  className="mt-1"
-                  maxLength={6}
-                  required
-                />
-                <p className="mt-1 text-sm text-gray-500">
-                  验证码已发送至 {phone}
-                </p>
-              </div>
-
-              {error && (
-                <div className="text-red-600 text-sm">
-                  {error}
+                <div>
+                  <label htmlFor="login-password" className="block text-sm font-medium text-gray-700">
+                    密码
+                  </label>
+                  <Input
+                    id="login-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="请输入密码"
+                    className="mt-1"
+                    required
+                  />
                 </div>
-              )}
 
-              <div className="flex space-x-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleBack}
-                  className="flex-1"
-                >
-                  返回
-                </Button>
+                {error && activeTab === 'login' && (
+                  <div className="text-red-600 text-sm">
+                    {error}
+                  </div>
+                )}
+
                 <Button
                   type="submit"
-                  className="flex-1"
+                  className="w-full"
                   disabled={isLoading}
                 >
-                  {isLoading ? '验证中...' : '登录'}
+                  {isLoading ? '登录中...' : '登录'}
                 </Button>
-              </div>
-            </form>
-          )}
-        </Card>
+              </form>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="register">
+            <Card className="p-8">
+              {registrationStep === 'form' ? (
+                <form onSubmit={handleRegister} className="space-y-6">
+                  <div>
+                    <label htmlFor="register-email" className="block text-sm font-medium text-gray-700">
+                      邮箱
+                    </label>
+                    <Input
+                      id="register-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="请输入邮箱"
+                      className="mt-1"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="register-password" className="block text-sm font-medium text-gray-700">
+                      密码
+                    </label>
+                    <Input
+                      id="register-password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="请输入密码"
+                      className="mt-1"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
+                      确认密码
+                    </label>
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="请再次输入密码"
+                      className="mt-1"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="inviteCode" className="block text-sm font-medium text-gray-700">
+                      邀请码 (可选)
+                    </label>
+                    <Input
+                      id="inviteCode"
+                      type="text"
+                      value={inviteCode}
+                      onChange={(e) => setInviteCode(e.target.value)}
+                      placeholder="输入邀请码可获得5次免费试用"
+                      className="mt-1"
+                    />
+                  </div>
+
+                  {error && activeTab === 'register' && registrationStep === 'form' && (
+                    <div className="text-red-600 text-sm">
+                      {error}
+                    </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? '注册中...' : '注册'}
+                  </Button>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyEmail} className="space-y-6">
+                  <div>
+                    <label htmlFor="verification-code" className="block text-sm font-medium text-gray-700">
+                      验证码
+                    </label>
+                    <Input
+                      id="verification-code"
+                      type="text"
+                      value={verificationCode}
+                      onChange={(e) => setVerificationCode(e.target.value)}
+                      placeholder="请输入6位验证码"
+                      className="mt-1"
+                      maxLength={6}
+                      required
+                    />
+                    <p className="mt-1 text-sm text-gray-500">
+                      验证码已发送至 {email}
+                    </p>
+                  </div>
+
+                  {error && activeTab === 'register' && registrationStep === 'verify' && (
+                    <div className="text-red-600 text-sm">
+                      {error}
+                    </div>
+                  )}
+
+                  <div className="flex space-x-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleBack}
+                      className="flex-1"
+                    >
+                      返回
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleSendCode}
+                      className="flex-1"
+                      disabled={isLoading}
+                    >
+                      重新发送
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="flex-1"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? '验证中...' : '验证'}
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         <div className="text-center text-sm text-gray-600">
-          <p>首次登录自动注册账户</p>
           <p>使用邀请码注册可获得5次免费API调用</p>
         </div>
       </div>
