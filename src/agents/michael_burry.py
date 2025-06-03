@@ -118,9 +118,9 @@ def michael_burry_agent(state: AgentState):  # noqa: C901  (complexity is fine h
             + contrarian_analysis["max_score"]
         )
 
-        if total_score >= 0.7 * max_possible_score:
+        if total_score >= 0.7 * max_score:
             signal = "看涨"
-        elif total_score <= 0.3 * max_possible_score:
+        elif total_score <= 0.3 * max_score:
             signal = "看跌"
         else:
             signal = "中立"
