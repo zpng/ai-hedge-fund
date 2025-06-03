@@ -55,10 +55,23 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
         const data = await response.json();
         setProfile(data);
       } else {
-        setError('获取用户信息失败');
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.detail || '获取用户信息失败';
+        setError(errorMessage);
+        toast({
+          variant: "destructive",
+          title: "获取信息失败",
+          description: errorMessage,
+        });
       }
     } catch (err) {
-      setError('网络错误');
+      const errorMessage = '网络错误';
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "网络错误",
+        description: "请检查网络连接后重试",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -162,6 +175,11 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
     const pollPaymentStatus = async () => {
       if (attempts >= maxAttempts) {
         console.log('支付轮询超时');
+        toast({
+          variant: "destructive",
+          title: "支付状态查询超时",
+          description: "请稍后在个人中心查看订阅状态",
+        });
         return;
       }
       
@@ -244,8 +262,32 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
   };
 
   const handleGoToComponents = () => {
-    // 直接使用navigate进行导航，不再依赖回调函数
-    navigate('/components');
+    try {
+      // 直接使用navigate进行导航，不再依赖回调函数
+      navigate('/components');
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "导航失败",
+        description: "页面跳转失败，请重试",
+      });
+    }
+  };
+
+  const handleLogout = () => {
+    try {
+      logout();
+      toast({
+        title: "已退出登录",
+        description: "您已成功退出登录",
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "退出失败",
+        description: "退出登录失败，请重试",
+      });
+    }
   };
 
   return (
@@ -376,7 +418,7 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
         </div>
 
         <div className="mt-8 text-center">
-          <Button onClick={logout} variant="outline">
+          <Button onClick={handleLogout} variant="outline">
             退出登录
           </Button>
         </div>

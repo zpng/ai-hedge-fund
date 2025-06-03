@@ -14,6 +14,7 @@ import {
 import { useCallback, useState } from 'react';
 import { ArrowLeft, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 import '@xyflow/react/dist/style.css';
 
@@ -34,6 +35,7 @@ export function Flow({ className = '', onGoToHome }: FlowProps) {
   const [isInitialized, setIsInitialized] = useState(false);
   const proOptions = { hideAttribution: true };
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   // Initialize the flow when it first renders
   const onInit = useCallback(() => {
@@ -60,9 +62,22 @@ export function Flow({ className = '', onGoToHome }: FlowProps) {
 
   // Reset the flow to initial state
   const resetFlow = useCallback(() => {
-    setNodes(initialNodes);
-    setEdges([]);
-  }, [setNodes, setEdges]);
+    try {
+      setNodes(initialNodes);
+      setEdges([]);
+      toast({
+        title: "流程已重置",
+        description: "所有节点和连接已恢复到初始状态",
+      });
+    } catch (error) {
+      console.error('Reset flow error:', error);
+      toast({
+        variant: "destructive",
+        title: "重置失败",
+        description: "无法重置流程，请刷新页面重试",
+      });
+    }
+  }, [setNodes, setEdges, toast]);
 
   // Handle back button
   const handleGoBack = useCallback(() => {
@@ -70,12 +85,17 @@ export function Flow({ className = '', onGoToHome }: FlowProps) {
       navigate(-1); // 使用React Router的导航返回上一页
     } catch (error) {
       console.error('Navigation error:', error);
+      toast({
+        variant: "destructive",
+        title: "导航失败",
+        description: "无法返回上一页，请手动导航",
+      });
       // 如果导航失败，尝试使用onGoToHome作为备选方案
       if (onGoToHome) {
         onGoToHome();
       }
     }
-  }, [navigate, onGoToHome]);
+  }, [navigate, onGoToHome, toast]);
 
   return (
     <div className={`w-full h-full ${className}`}>

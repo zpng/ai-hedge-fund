@@ -7,12 +7,14 @@ import { UserProfile } from './components/auth/user-profile';
 import { AuthProvider, useAuth } from './contexts/auth-context';
 import { Button } from './components/ui/button';
 import { Toaster } from './components/ui/toaster';
+import { useToast } from './hooks/use-toast';
 
 function AppContent() {
   const [showLeftSidebar] = useState(false);
   const [showRightSidebar] = useState(false);
   const { isAuthenticated, isLoading, user, logout } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // 登录后自动导航到个人中心页面
   useEffect(() => {
@@ -33,6 +35,34 @@ function AppContent() {
     return <Login />;
   }
 
+  const handleNavigateToHome = () => {
+    try {
+      navigate('/home');
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "导航失败",
+        description: "页面跳转失败，请重试",
+      });
+    }
+  };
+
+  const handleLogout = () => {
+    try {
+      logout();
+      toast({
+        title: "已退出登录",
+        description: "您已成功退出登录",
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "退出失败",
+        description: "退出登录失败，请重试",
+      });
+    }
+  };
+
   return (
     <Routes>
       <Route path="/home" element={<UserProfile />} />
@@ -51,7 +81,7 @@ function AppContent() {
               </div>
               <div className="space-y-2">
                 <Button 
-                  onClick={() => navigate('/home')}
+                  onClick={handleNavigateToHome}
                   variant="outline"
                   size="sm"
                   className="w-full"
@@ -59,7 +89,7 @@ function AppContent() {
                   用户设置
                 </Button>
                 <Button 
-                  onClick={logout}
+                  onClick={handleLogout}
                   variant="outline"
                   size="sm"
                   className="w-full"
@@ -70,7 +100,7 @@ function AppContent() {
             </div>
           ) : undefined}
         >
-          <Flow onGoToHome={() => navigate('/home')} />
+          <Flow onGoToHome={handleNavigateToHome} />
         </Layout>
       } />
       <Route path="*" element={<Navigate to="/home" replace />} />
