@@ -177,40 +177,112 @@ class PaymentService:
             return {"status": "error", "message": str(e)}
 
     async def process_payment_notification(self, notification_data: Dict[str, Any]) -> bool:
-        """处理支付回调通知"""
+        """处理支付回调通知
+        
+        根据虎皮椒支付回调接口文档处理回调通知：
+        - 验证必要参数
+        - 验证签名
+        - 更新支付状态
+        - 更新用户订阅
+        """
         try:
-            # 验证签名
+            logger.info(f"开始处理支付回调通知: {notification_data}")
+            
+            # 1. 验证必要参数
+            required_fields = [
+                'trade_order_id', 'total_fee', 'transaction_id', 
+                'open_order_id', 'order_title', 'status', 
+                'nonce_str', 'time', 'appid', 'hash'
+            ]
+            
+            for field in required_fields:
+                if field not in notification_data:
+                    logger.error(f"支付回调缺少必要参数: {field}")
+                    return False
+            
+            # 2. 提取关键信息
+            trade_order_id = notification_data.get("trade_order_id")
+            total_fee = notification_data.get("total_fee")
+            transaction_id = notification_data.get("transaction_id")
+            open_order_id = notification_data.get("open_order_id")
+            order_title = notification_data.get("order_title")
+            status = notification_data.get("status")
+            appid = notification_data.get("appid")
+            time_stamp = notification_data.get("time")
+            nonce_str = notification_data.get("nonce_str")
+            
+            # 可选参数
+            plugins = notification_data.get("plugins")
+            attach = notification_data.get("attach")
+            
+            logger.info(f"回调参数解析 - 订单号: {trade_order_id}, 金额: {total_fee}, 状态: {status}, 交易号: {transaction_id}")
+            
+            # 3. 验证appid
+            if appid != self.appid:
+                logger.error(f"支付回调appid不匹配: 期望={self.appid}, 实际={appid}")
+                return False
+            
+            # 4. 验证签名
             received_hash = notification_data.pop("hash", "")
             calculated_hash = self._generate_hash(notification_data)
             
             if received_hash != calculated_hash:
-                logger.error("支付回调签名验证失败")
+                logger.error(f"支付回调签名验证失败: 期望={calculated_hash}, 实际={received_hash}")
                 return False
             
-            trade_order_id = notification_data.get("trade_order_id")
-            if not trade_order_id:
-                logger.error("支付回调缺少订单号")
-                return False
+            logger.info("支付回调签名验证成功")
             
-            # 获取支付记录
+            # 5. 获取支付记录
             payment_record = await self._get_payment_record_by_trade_order_id(trade_order_id)
             if not payment_record:
                 logger.error(f"未找到订单记录: {trade_order_id}")
                 return False
             
-            # 更新支付状态
-            payment_record.status = PaymentStatus.SUCCESS
-            payment_record.paid_at = datetime.now()
-            payment_record.transaction_id = notification_data.get("transaction_id")
-            payment_record.payment_method = notification_data.get("payment_method")
+            # 6. 验证金额
+            if float(total_fee) != payment_record.amount:
+                logger.error(f"支付金额不匹配: 期望={payment_record.amount}, 实际={total_fee}")
+                return False
+            
+            # 7. 处理不同的支付状态
+            if status == "OD":  # 已支付
+                if payment_record.status == PaymentStatus.SUCCESS:
+                    logger.info(f"订单已处理过: {trade_order_id}")
+                    return True  # 重复通知，直接返回成功
+                
+                # 更新支付状态为成功
+                payment_record.status = PaymentStatus.SUCCESS
+                payment_record.paid_at = datetime.now()
+                payment_record.transaction_id = transaction_id
+                
+                logger.info(f"订单支付成功: {trade_order_id}, 交易号: {transaction_id}")
+                
+                # 更新用户订阅
+                await self._update_user_subscription(payment_record)
+                
+            elif status == "CD":  # 已退款
+                payment_record.status = PaymentStatus.REFUNDED
+                logger.info(f"订单已退款: {trade_order_id}")
+                
+            elif status == "RD":  # 退款中
+                logger.info(f"订单退款中: {trade_order_id}")
+                # 保持当前状态，不做修改
+                
+            elif status == "UD":  # 退款失败
+                logger.warning(f"订单退款失败: {trade_order_id}")
+                # 保持当前状态，不做修改
+                
+            else:
+                logger.warning(f"未知的支付状态: {status}, 订单号: {trade_order_id}")
+                return False
+            
+            # 8. 保存更新后的支付记录
             await self._save_payment_record(payment_record)
             
-            # 更新用户订阅
-            await self._update_user_subscription(payment_record)
-            
+            logger.info(f"支付回调处理完成: {trade_order_id}, 最终状态: {payment_record.status}")
             return True
+            
         except Exception as e:
-            logger.error(f"处理支付回调异常: {str(e)}")
+            logger.error(f"处理支付回调异常: {str(e)}", exc_info=True)
             return False
 
     async def _save_payment_record(self, payment_record: PaymentRecord) -> None:

@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends, Request, status
 from fastapi.responses import JSONResponse
 from typing import Dict, Any
 import traceback
+import logging
 
 from app.backend.models.user import User, SubscriptionType
 from app.backend.models.payment import PaymentRecord
@@ -97,33 +98,71 @@ async def payment_notify(
     request: Request,
     payment_service: PaymentService = Depends(get_payment_service)
 ):
-    """支付回调通知接口"""
+    """支付回调通知接口
+    
+    处理虎皮椒支付平台的回调通知：
+    - 接收POST表单数据
+    - 验证回调参数和签名
+    - 更新支付状态和用户订阅
+    - 返回"success"表示处理成功，其他表示失败
+    """
     try:
+        # 记录请求基本信息
+        client_ip = request.client.host if request.client else "unknown"
+        user_agent = request.headers.get("user-agent", "unknown")
+        content_type = request.headers.get("content-type", "")
+        
+        logger.info(f"收到支付回调通知 - IP: {client_ip}, User-Agent: {user_agent}, Content-Type: {content_type}")
+        
         # 获取请求数据
-        logger.info("收到支付回调通知")
-        if request.headers.get("content-type", "").startswith("application/json"):
+        notification_data = {}
+        
+        if content_type.startswith("application/json"):
+            # 处理JSON数据（虽然文档说是表单，但保留兼容性）
             notification_data = await request.json()
             logger.info(f"支付回调数据(JSON): {notification_data}")
-        else:
-            # 处理表单数据
+        elif content_type.startswith("application/x-www-form-urlencoded"):
+            # 处理表单数据（虎皮椒标准格式）
             form_data = await request.form()
             notification_data = dict(form_data)
             logger.info(f"支付回调数据(表单): {notification_data}")
+        else:
+            # 尝试解析为表单数据
+            try:
+                form_data = await request.form()
+                notification_data = dict(form_data)
+                logger.info(f"支付回调数据(默认表单): {notification_data}")
+            except Exception as parse_error:
+                logger.error(f"无法解析回调数据，Content-Type: {content_type}, 错误: {str(parse_error)}")
+                return "fail"
+        
+        # 验证数据不为空
+        if not notification_data:
+            logger.error("支付回调数据为空")
+            return "fail"
+        
+        # 记录关键参数
+        trade_order_id = notification_data.get("trade_order_id", "unknown")
+        status = notification_data.get("status", "unknown")
+        total_fee = notification_data.get("total_fee", "unknown")
+        
+        logger.info(f"处理支付回调 - 订单号: {trade_order_id}, 状态: {status}, 金额: {total_fee}")
         
         # 处理支付通知
         success = await payment_service.process_payment_notification(notification_data)
         
         if success:
-            logger.info("支付回调处理成功")
-            return "success"  # 虎皮椒要求返回"success"字符串
+            logger.info(f"支付回调处理成功 - 订单号: {trade_order_id}")
+            return "success"  # 虎皮椒要求返回"success"字符串表示成功
         else:
-            logger.warning("支付回调处理失败")
-            return "fail"
+            logger.warning(f"支付回调处理失败 - 订单号: {trade_order_id}")
+            return "fail"  # 返回非"success"字符串表示失败，平台会重试
+            
     except Exception as e:
         # 记录详细错误信息
         error_detail = traceback.format_exc()
         logger.error(f"支付回调处理异常: {str(e)}\n{error_detail}")
-        return "fail"
+        return "fail"  # 异常情况返回失败，触发重试机制
 
 
 @router.get("/return")
