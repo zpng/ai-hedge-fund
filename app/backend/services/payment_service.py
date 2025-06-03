@@ -131,50 +131,114 @@ class PaymentService:
             logger.error(f"创建支付记录失败: {str(e)}")
             raise
 
-    async def query_payment(self, trade_order_id: str) -> Dict[str, Any]:
-        """查询支付状态"""
+    async def query_payment(self, trade_order_id: str, open_order_id: Optional[str] = None) -> Dict[str, Any]:
+        """查询支付状态
+        
+        根据虎皮椒订单查询接口文档实现：
+        - 支持通过out_trade_order或open_order_id查询
+        - 返回标准的接口响应格式
+        - 状态码：OD(支付成功)，WP(待支付)，CD(已取消)
+        """
         try:
-            # 构建查询参数（不包含sign）
+            # 构建查询参数（根据文档要求）
             params = {
                 "appid": self.appid,
-                "trade_order_id": trade_order_id,
-                "nonce_str": uuid.uuid4().hex
+                "time": int(time.time()),
+                "nonce_str": uuid.uuid4().hex[:32]  # 限制32位长度
             }
+            
+            # 根据文档，out_trade_order和open_order_id二选一
+            if open_order_id:
+                params["open_order_id"] = open_order_id
+            else:
+                params["out_trade_order"] = trade_order_id
             
             # 生成hash签名
             hash_value = self._generate_hash(params)
             params["hash"] = hash_value
             
-            # 创建查询请求对象
-            query_request = XunhuQueryRequest(**params)
+            logger.info(f"发送订单查询请求: {params}")
             
-            # 发送请求
-            response = requests.post(self.query_url, json=params)
-            query_response = XunhuQueryResponse(**response.json())
+            # 发送请求到虎皮椒查询接口
+            response = requests.post(self.query_url, data=params, timeout=30)
+            response_data = response.json()
             
-            if query_response.errcode == 0 and query_response.data:
-                # 获取支付记录
+            logger.info(f"订单查询响应: {response_data}")
+            
+            # 验证响应签名
+            if "hash" in response_data:
+                received_hash = response_data.pop("hash")
+                calculated_hash = self._generate_hash(response_data)
+                if received_hash != calculated_hash:
+                    logger.error(f"查询响应签名验证失败: 期望={calculated_hash}, 实际={received_hash}")
+                    return {
+                        "errcode": 500,
+                        "errmsg": "响应签名验证失败",
+                        "hash": calculated_hash
+                    }
+                # 恢复hash字段
+                response_data["hash"] = received_hash
+            
+            # 处理成功响应
+            if response_data.get("errcode") == 0 and "data" in response_data:
+                data = response_data["data"]
+                status = data.get("status")
+                
+                # 获取本地支付记录并更新状态
                 payment_record = await self._get_payment_record_by_trade_order_id(trade_order_id)
                 if payment_record:
-                    # 更新支付状态
-                    if query_response.data.get("status") == "OD":
-                        payment_record.status = PaymentStatus.SUCCESS
-                        payment_record.paid_at = datetime.now()
-                        payment_record.transaction_id = query_response.data.get("transaction_id")
-                        payment_record.payment_method = query_response.data.get("payment_method")
+                    # 根据虎皮椒状态更新本地记录
+                    if status == "OD":  # 支付成功
+                        if payment_record.status != PaymentStatus.SUCCESS:
+                            payment_record.status = PaymentStatus.SUCCESS
+                            payment_record.paid_at = datetime.now()
+                            payment_record.transaction_id = data.get("open_order_id")
+                            await self._save_payment_record(payment_record)
+                            
+                            # 更新用户订阅
+                            await self._update_user_subscription(payment_record)
+                            logger.info(f"订单状态更新为已支付: {trade_order_id}")
+                    
+                    elif status == "CD":  # 已取消
+                        payment_record.status = PaymentStatus.FAILED
                         await self._save_payment_record(payment_record)
-                        
-                        # 更新用户订阅
-                        await self._update_user_subscription(payment_record)
+                        logger.info(f"订单状态更新为已取消: {trade_order_id}")
+                    
+                    elif status == "WP":  # 待支付
+                        logger.info(f"订单待支付: {trade_order_id}")
                 
-                return query_response.data
+                # 返回标准格式响应
+                return {
+                    "errcode": 0,
+                    "data": data,
+                    "errmsg": "success!",
+                    "hash": response_data.get("hash")
+                }
+            
             else:
-                error_msg = {"status": "error", "message": query_response.errmsg}
-                logger.error(f"查询支付状态失败: {error_msg}")
-                return error_msg
+                # 处理错误响应
+                error_response = {
+                    "errcode": response_data.get("errcode", 500),
+                    "errmsg": response_data.get("errmsg", "查询失败"),
+                    "hash": response_data.get("hash", "")
+                }
+                logger.error(f"查询支付状态失败: {error_response}")
+                return error_response
+                
+        except requests.RequestException as e:
+            logger.error(f"查询支付状态网络异常: {str(e)}")
+            return {
+                "errcode": 500,
+                "errmsg": f"网络请求失败: {str(e)}",
+                "hash": ""
+            }
         except Exception as e:
             logger.error(f"查询支付状态异常: {str(e)}")
-            return {"status": "error", "message": str(e)}
+            return {
+                "errcode": 500,
+                "errmsg": f"查询异常: {str(e)}",
+                "hash": ""
+            }
 
     async def process_payment_notification(self, notification_data: Dict[str, Any]) -> bool:
         """处理支付回调通知

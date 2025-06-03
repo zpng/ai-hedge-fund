@@ -69,27 +69,67 @@ async def create_payment(
 @router.get("/query/{trade_order_id}")
 async def query_payment(
     trade_order_id: str,
+    appid: str = None,
+    out_trade_order: str = None,
+    open_order_id: str = None,
+    time: int = None,
+    nonce_str: str = None,
+    hash: str = None,
     current_user: User = Depends(get_current_user),
     payment_service: PaymentService = Depends(get_payment_service)
 ):
-    """查询支付状态"""
+    """查询支付状态
+    
+    根据虎皮椒订单查询接口文档实现：
+    请求参数：
+    - appid: APP ID (必填)
+    - out_trade_order: 商户网站订单号 (与open_order_id二选一)
+    - open_order_id: 虎皮椒内部订单号 (与out_trade_order二选一)
+    - time: 当前时间戳 (必填)
+    - nonce_str: 随机值 (必填)
+    - hash: 签名 (必填)
+    
+    返回格式：
+    - errcode: 0表示成功，其他表示失败
+    - data.status: OD(支付成功)，WP(待支付)，CD(已取消)
+    - errmsg: 状态信息
+    - hash: 响应签名
+    """
     try:
         logger.info(f"查询支付状态: 订单号={trade_order_id}, 用户ID={current_user.id}")
-        result = await payment_service.query_payment(trade_order_id)
-        logger.info(f"查询支付状态成功: {result}")
-        return {
-            "status": "success",
-            "data": result
-        }
+        
+        # 使用路径参数中的trade_order_id，也支持查询参数中的out_trade_order
+        query_trade_order_id = out_trade_order or trade_order_id
+        
+        # 调用支付服务查询
+        result = await payment_service.query_payment(
+            trade_order_id=query_trade_order_id,
+            open_order_id=open_order_id
+        )
+        
+        logger.info(f"查询支付状态响应: {result}")
+        
+        # 直接返回符合虎皮椒接口格式的响应
+        return JSONResponse(
+            content=result,
+            status_code=200
+        )
+        
     except Exception as e:
         # 记录详细错误信息
         error_detail = traceback.format_exc()
         logger.error(f"查询支付状态失败: {str(e)}\n{error_detail}")
         
-        # 返回错误响应
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"查询支付状态失败: {str(e)}"
+        # 返回符合虎皮椒接口格式的错误响应
+        error_response = {
+            "errcode": 500,
+            "errmsg": f"查询支付状态失败: {str(e)}",
+            "hash": ""
+        }
+        
+        return JSONResponse(
+            content=error_response,
+            status_code=200  # 虎皮椒接口通常返回200状态码，错误信息在errcode中
         )
 
 

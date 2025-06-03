@@ -41,10 +41,21 @@ class XunhuPayResponse(BaseModel):
 
 
 class XunhuQueryRequest(BaseModel):
-    """虎皮椒订单查询请求参数"""
+    """虎皮椒订单查询请求参数
+    
+    根据虎皮椒接口文档：
+    - appid: APP ID (必填)
+    - out_trade_order: 商户网站订单号 (与open_order_id二选一)
+    - open_order_id: 虎皮椒内部订单号 (与out_trade_order二选一)
+    - time: 当前时间戳 (必填)
+    - nonce_str: 随机值 (必填)
+    - hash: 签名 (必填)
+    """
     appid: str  # 商户应用ID
-    trade_order_id: str  # 商户订单号
-    nonce_str: Optional[str] = None  # 随机字符串
+    out_trade_order: Optional[str] = None  # 商户网站订单号
+    open_order_id: Optional[str] = None  # 虎皮椒内部订单号
+    time: int  # 当前时间戳
+    nonce_str: str  # 随机字符串
     hash: str  # 签名，由系统生成
 
 
