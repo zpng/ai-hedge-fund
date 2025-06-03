@@ -12,7 +12,7 @@ class RedisService:
         self.redis_client = redis.from_url(redis_url, decode_responses=True)
     
     # User management
-    async def create_user(self, email: str, password: str, invited_by: Optional[str] = None) -> User:
+    async def create_user(self, email: str, password: str, invited_by: Optional[str] = None, email_verified: bool = False) -> User:
         user_id = self._generate_user_id()
         password_hash = User.hash_password(password)
         user = User(
@@ -22,7 +22,8 @@ class RedisService:
             created_at=datetime.now(),
             subscription_type=SubscriptionType.TRIAL,
             api_calls_remaining=5 if invited_by else 0,  # 5 free calls if invited
-            invited_by=invited_by
+            invited_by=invited_by,
+            email_verified=email_verified
         )
         
         # Store user data
@@ -48,6 +49,26 @@ class RedisService:
         if user:
             user.email_verified = True
             await self.update_user(user)
+    
+    async def is_email_verified(self, email: str) -> bool:
+        """检查邮箱是否已验证，用于注册前的验证"""
+        # 检查是否有验证记录
+        key = f"verified_email:{email}"
+        return bool(self.redis_client.exists(key))
+    
+    async def mark_email_verified(self, email: str) -> None:
+        """标记邮箱为已验证，用于注册前的验证"""
+        # 标记邮箱为已验证
+        key = f"verified_email:{email}"
+        self.redis_client.set(key, "1")
+        
+        # 标记验证码为已使用
+        verification_key = f"verification:{email}"
+        verification_data = self.redis_client.get(verification_key)
+        if verification_data:
+            verification = VerificationCode.model_validate_json(verification_data)
+            verification.is_used = True
+            self.redis_client.setex(verification_key, 300, verification.model_dump_json())
     
     async def get_user_by_id(self, user_id: str) -> Optional[User]:
         user_data = self.redis_client.hget(f"user:{user_id}", "data")

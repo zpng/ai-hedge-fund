@@ -55,52 +55,6 @@ export function Login() {
     }
   };
 
-  // 注册处理
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim() || !password.trim()) {
-      toast({
-        variant: "destructive",
-        title: "输入错误",
-        description: "请输入邮箱和密码",
-      });
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      toast({
-        variant: "destructive",
-        title: "输入错误",
-        description: "两次输入的密码不一致",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    setError('');
-
-    try {
-      await register(email, password, inviteCode || undefined);
-      setRegistrationStep('verify');
-      await sendVerificationCode(email);
-      setCodeSent(true);
-      toast({
-        title: "注册成功",
-        description: "验证码已发送到您的邮箱，请验证邮箱完成注册",
-      });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '注册失败';
-      setError(errorMessage);
-      toast({
-        variant: "destructive",
-        title: "注册失败",
-        description: errorMessage,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // 发送验证码
   const handleSendCode = async () => {
     if (!email.trim()) {
@@ -135,7 +89,7 @@ export function Login() {
     }
   };
 
-  // 验证邮箱
+  // 注册第一步：验证邮箱
   const handleVerifyEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!verificationCode.trim()) {
@@ -152,13 +106,11 @@ export function Login() {
 
     try {
       await verifyEmail(email, verificationCode);
+      setRegistrationStep('form');
       toast({
         title: "验证成功",
-        description: "邮箱验证成功，请登录",
+        description: "邮箱验证成功，请设置密码完成注册",
       });
-      setActiveTab('login');
-      setRegistrationStep('form');
-      setVerificationCode('');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '验证失败';
       setError(errorMessage);
@@ -172,12 +124,50 @@ export function Login() {
     }
   };
 
-  // 返回注册表单
-  const handleBack = () => {
-    setRegistrationStep('form');
-    setVerificationCode('');
+  // 注册第二步：设置密码并完成注册
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password.trim()) {
+      toast({
+        variant: "destructive",
+        title: "输入错误",
+        description: "请输入密码",
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "输入错误",
+        description: "两次输入的密码不一致",
+      });
+      return;
+    }
+
+    setIsLoading(true);
     setError('');
-    setCodeSent(false);
+
+    try {
+      await register(email, password, inviteCode || undefined);
+      toast({
+        title: "注册成功",
+        description: "注册成功，请登录",
+      });
+      setActiveTab('login');
+      setPassword('');
+      setConfirmPassword('');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '注册失败';
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "注册失败",
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -253,16 +243,56 @@ export function Login() {
                     <label htmlFor="register-email" className="block text-sm font-medium text-gray-700">
                       邮箱
                     </label>
-                    <Input
-                      id="register-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="请输入邮箱"
-                      className="mt-1"
-                      required
-                    />
+                    <div className="flex space-x-2">
+                      <Input
+                        id="register-email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="请输入邮箱"
+                        className="mt-1 flex-1"
+                        required
+                        disabled={codeSent}
+                      />
+                      <Button 
+                        type="button" 
+                        onClick={handleSendCode} 
+                        className="mt-1" 
+                        disabled={isLoading || codeSent}
+                      >
+                        {codeSent ? '已发送' : '发送验证码'}
+                      </Button>
+                    </div>
                   </div>
+
+                  {codeSent && (
+                    <div>
+                      <label htmlFor="verification-code" className="block text-sm font-medium text-gray-700">
+                        验证码
+                      </label>
+                      <div className="flex space-x-2">
+                        <Input
+                          id="verification-code"
+                          type="text"
+                          value={verificationCode}
+                          onChange={(e) => setVerificationCode(e.target.value)}
+                          placeholder="请输入6位验证码"
+                          className="mt-1 flex-1"
+                          maxLength={6}
+                          required
+                        />
+                        <Button 
+                          type="button" 
+                          onClick={handleSendCode} 
+                          className="mt-1" 
+                          disabled={isLoading}
+                          variant="outline"
+                        >
+                          重新发送
+                        </Button>
+                      </div>
+                    </div>
+                  )}
 
                   <div>
                     <label htmlFor="register-password" className="block text-sm font-medium text-gray-700">
@@ -308,7 +338,7 @@ export function Login() {
                     />
                   </div>
 
-                  {error && activeTab === 'register' && registrationStep === 'form' && (
+                  {error && activeTab === 'register' && (
                     <div className="text-red-600 text-sm">
                       {error}
                     </div>
@@ -317,66 +347,12 @@ export function Login() {
                   <Button
                     type="submit"
                     className="w-full"
-                    disabled={isLoading}
+                    disabled={isLoading || !codeSent || !verificationCode}
                   >
                     {isLoading ? '注册中...' : '注册'}
                   </Button>
                 </form>
-              ) : (
-                <form onSubmit={handleVerifyEmail} className="space-y-6">
-                  <div>
-                    <label htmlFor="verification-code" className="block text-sm font-medium text-gray-700">
-                      验证码
-                    </label>
-                    <Input
-                      id="verification-code"
-                      type="text"
-                      value={verificationCode}
-                      onChange={(e) => setVerificationCode(e.target.value)}
-                      placeholder="请输入6位验证码"
-                      className="mt-1"
-                      maxLength={6}
-                      required
-                    />
-                    <p className="mt-1 text-sm text-gray-500">
-                      验证码已发送至 {email}
-                    </p>
-                  </div>
-
-                  {error && activeTab === 'register' && registrationStep === 'verify' && (
-                    <div className="text-red-600 text-sm">
-                      {error}
-                    </div>
-                  )}
-
-                  <div className="flex space-x-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleBack}
-                      className="flex-1"
-                    >
-                      返回
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleSendCode}
-                      className="flex-1"
-                      disabled={isLoading}
-                    >
-                      重新发送
-                    </Button>
-                    <Button
-                      type="submit"
-                      className="flex-1"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? '验证中...' : '验证'}
-                    </Button>
-                  </div>
-                </form>
-              )}
+              ) : null}
             </Card>
           </TabsContent>
         </Tabs>

@@ -16,16 +16,35 @@ class AuthService:
     
     async def send_verification_code(self, email: str) -> str:
         """Send verification code to user's email. Returns the code for testing purposes."""
+        # Check if user already exists
+        existing_user = await self.redis_service.get_user_by_email(email)
+        if existing_user:
+            # 如果用户已存在但邮箱未验证，允许重新发送验证码
+            if not existing_user.email_verified:
+                code = await self.redis_service.create_verification_code(email)
+                await self.email_service.send_verification_email(email, code)
+                return code
+            # 如果用户已存在且邮箱已验证，提示用户直接登录
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered and verified. Please login."
+            )
+        
+        # 如果用户不存在，创建验证码并发送
         code = await self.redis_service.create_verification_code(email)
-        
-        # Send email with verification code
         await self.email_service.send_verification_email(email, code)
-        
         return code
     
     async def register(self, email: str, password: str, invite_code: Optional[str] = None) -> User:
         """Register a new user."""
-        # Check if user already exists
+        # 检查邮箱是否已验证
+        if not await self.redis_service.is_email_verified(email):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email not verified. Please verify your email first."
+            )
+        
+        # 检查用户是否已存在
         existing_user = await self.redis_service.get_user_by_email(email)
         if existing_user:
             raise HTTPException(
@@ -33,7 +52,7 @@ class AuthService:
                 detail="Email already registered"
             )
         
-        # Process invite code if provided
+        # 处理邀请码
         invited_by = None
         if invite_code:
             if not await self.redis_service.validate_invite_code(invite_code):
@@ -42,39 +61,32 @@ class AuthService:
                     detail="Invalid invite code"
                 )
             
-            # Use the invite code
+            # 使用邀请码
             invite = await self.redis_service.use_invite_code(invite_code, "temp_user_id")
             if invite:
                 invited_by = invite.user_id
         
-        # Create new user
-        user = await self.redis_service.create_user(email, password, invited_by)
+        # 创建新用户，并标记为已验证
+        user = await self.redis_service.create_user(email, password, invited_by, email_verified=True)
         
-        # Update invite code with actual user ID
+        # 更新邀请码的实际用户ID
         if invite_code and invited_by:
             invite = await self.redis_service.use_invite_code(invite_code, user.id)
         
-        # Send verification email
-        await self.send_verification_code(email)
-        
-        # Send welcome email
+        # 发送欢迎邮件
         await self.email_service.send_welcome_email(email)
         
         return user
     
     async def verify_email(self, email: str, code: str) -> bool:
         """Verify user's email with verification code."""
-        # Verify the code
+        # 验证验证码
         if not await self.redis_service.verify_code(email, code):
             return False
         
-        # Get user and mark email as verified
-        user = await self.redis_service.get_user_by_email(email)
-        if user:
-            await self.redis_service.verify_user_email(user.id)
-            return True
-        
-        return False
+        # 标记邮箱为已验证
+        await self.redis_service.mark_email_verified(email)
+        return True
     
     async def login(self, email: str, password: str) -> dict:
         """Login user with email and password."""

@@ -30,20 +30,6 @@ async def send_verification_code(
         )
 
 
-@router.post("/register")
-async def register_user(
-    request: RegisterRequest,
-    auth_service: AuthService = Depends(get_auth_service)
-):
-    """Register a new user with email and password."""
-    user = await auth_service.register(
-        request.email,
-        request.password,
-        request.invite_code
-    )
-    return {"message": "Registration successful. Please verify your email.", "user_id": user.id}
-
-
 @router.post("/verify-email")
 async def verify_email(
     request: VerifyEmailRequest,
@@ -58,6 +44,29 @@ async def verify_email(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid or expired verification code"
         )
+
+
+@router.post("/register")
+async def register_user(
+    request: RegisterRequest,
+    auth_service: AuthService = Depends(get_auth_service),
+    redis_service: RedisService = Depends(get_redis_service)
+):
+    """Register a new user with email and password."""
+    # 检查邮箱是否已验证
+    is_verified = await redis_service.is_email_verified(request.email)
+    if not is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email not verified. Please verify your email before registration."
+        )
+        
+    user = await auth_service.register(
+        request.email,
+        request.password,
+        request.invite_code
+    )
+    return {"message": "Registration successful.", "user_id": user.id}
 
 
 @router.post("/login", response_model=LoginResponse)

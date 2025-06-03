@@ -23,8 +23,9 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   sendVerificationCode: (email: string) => Promise<void>;
-  verifyEmail: (email: string, code: string) => Promise<void>;
+  verifyEmail: (email: string, code: string) => Promise<boolean>;
   refreshUser: () => Promise<void>;
+  isEmailVerified: (email: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -125,6 +126,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return response.json();
   };
+  
+  const isEmailVerified = async (email: string) => {
+    try {
+      // 这里我们通过尝试发送验证码来检查邮箱是否已验证
+      // 如果后端返回邮箱已验证的错误，则表示邮箱已验证
+      await sendVerificationCode(email);
+      return false; // 如果能成功发送验证码，说明邮箱未验证
+    } catch (error: any) {
+      // 如果错误消息包含"已验证"，则认为邮箱已验证
+      if (error.message && error.message.includes('已验证')) {
+        return true;
+      }
+      throw error; // 其他错误继续抛出
+    }
+  };
 
   const login = async (email: string, password: string) => {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -182,6 +198,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sendVerificationCode,
     verifyEmail,
     refreshUser,
+    isEmailVerified,
   };
 
   return (
