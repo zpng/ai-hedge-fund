@@ -1,4 +1,4 @@
-import { type NodeTypes } from '@xyflow/react';
+import { type NodeTypes, MarkerType } from '@xyflow/react';
 
 import { AgentNode } from './components/agent-node';
 import { JsonOutputNode } from './components/json-output-node';
@@ -55,14 +55,14 @@ export const initialEdges = [
     id: `text-input-node-${agent.key}`,
     source: 'text-input-node',
     target: agent.key,
-    markerEnd: { type: 'arrowclosed' },
+    markerEnd: { type: MarkerType.ArrowClosed },
   })),
   // Connect all agents to output
   ...agents.map((agent) => ({
     id: `${agent.key}-text-output-node`,
     source: agent.key,
     target: 'text-output-node',
-    markerEnd: { type: 'arrowclosed' },
+    markerEnd: { type: MarkerType.ArrowClosed },
   })),
 ];
 
