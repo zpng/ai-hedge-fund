@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 from enum import Enum
 from pathlib import Path
 from typing import Tuple, List
@@ -11,6 +12,9 @@ from langchain_groq import ChatGroq
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
+
+# 获取日志记录器
+logger = logging.getLogger("ai-hedge-fund")
 
 
 class ModelProvider(str, Enum):
@@ -101,53 +105,111 @@ OLLAMA_LLM_ORDER = [model.to_choice_tuple() for model in OLLAMA_MODELS]
 
 def get_model_info(model_name: str, model_provider: str) -> LLMModel | None:
     """Get model information by model_name"""
+    logger.info(f"获取模型信息: model_name={model_name}, model_provider={model_provider}")
     all_models = AVAILABLE_MODELS + OLLAMA_MODELS
-    return next((model for model in all_models if model.model_name == model_name and model.provider == model_provider),
+    model = next((model for model in all_models if model.model_name == model_name and model.provider == model_provider),
                 None)
+    if model:
+        logger.info(f"找到模型信息: {model}")
+    else:
+        logger.warning(f"未找到模型信息: model_name={model_name}, model_provider={model_provider}")
+    return model
 
 
 def get_model(model_name: str, model_provider: ModelProvider) -> ChatOpenAI | ChatGroq | ChatOllama | None:
-    base_url = os.getenv("MODEL_BASE_URL")
+    logger.info(f"初始化模型: model_name={model_name}, model_provider={model_provider}")
+    base_url = os.getenv("BASE_URL")
+    if base_url:
+        logger.info(f"使用自定义BASE_URL: {base_url}")
+    
     if model_provider == ModelProvider.GROQ:
+        logger.info(f"初始化Groq模型: {model_name}")
         api_key = os.getenv("GROQ_API_KEY")
         if not api_key:
-            # Print error to console
-            print(f"API Key Error: Please make sure GROQ_API_KEY is set in your .env file.")
-            raise ValueError("Groq API key not found.  Please make sure GROQ_API_KEY is set in your .env file.")
+            error_msg = "Groq API key not found. Please make sure GROQ_API_KEY is set in your .env file."
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+        logger.info(f"成功获取Groq API密钥")
         return ChatGroq(model=model_name, api_key=api_key, base_url=base_url)
     elif model_provider == ModelProvider.OPENAI:
+        logger.info(f"初始化OpenAI模型: {model_name}")
         # Get and validate API key
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
-            # Print error to console
-            print(f"API Key Error: Please make sure OPENAI_API_KEY is set in your .env file.")
-            raise ValueError("OpenAI API key not found.  Please make sure OPENAI_API_KEY is set in your .env file.")
-        return ChatOpenAI(model=model_name, api_key=api_key, base_url=base_url)
+            error_msg = "OpenAI API key not found. Please make sure OPENAI_API_KEY is set in your .env file."
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+        logger.info(f"成功获取OpenAI API密钥")
+        try:
+            model = ChatOpenAI(model=model_name, api_key=api_key, base_url=base_url)
+            logger.info(f"成功初始化OpenAI模型")
+            return model
+        except Exception as e:
+            logger.error(f"初始化OpenAI模型失败: {str(e)}")
+            raise
     elif model_provider == ModelProvider.ANTHROPIC:
+        logger.info(f"初始化Anthropic模型: {model_name}")
         api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
-            print(f"API Key Error: Please make sure ANTHROPIC_API_KEY is set in your .env file.")
-            raise ValueError(
-                "Anthropic API key not found.  Please make sure ANTHROPIC_API_KEY is set in your .env file.")
-        return ChatAnthropic(model=model_name, api_key=api_key, base_url=base_url)
+            error_msg = "Anthropic API key not found. Please make sure ANTHROPIC_API_KEY is set in your .env file."
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+        logger.info(f"成功获取Anthropic API密钥")
+        try:
+            model = ChatAnthropic(model=model_name, api_key=api_key, base_url=base_url)
+            logger.info(f"成功初始化Anthropic模型")
+            return model
+        except Exception as e:
+            logger.error(f"初始化Anthropic模型失败: {str(e)}")
+            raise
     elif model_provider == ModelProvider.DEEPSEEK:
+        logger.info(f"初始化DeepSeek模型: {model_name}")
         api_key = os.getenv("DEEPSEEK_API_KEY")
         if not api_key:
-            print(f"API Key Error: Please make sure DEEPSEEK_API_KEY is set in your .env file.")
-            raise ValueError("DeepSeek API key not found.  Please make sure DEEPSEEK_API_KEY is set in your .env file.")
-        return ChatDeepSeek(model=model_name, api_key=api_key, base_url=base_url)
+            error_msg = "DeepSeek API key not found. Please make sure DEEPSEEK_API_KEY is set in your .env file."
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+        logger.info(f"成功获取DeepSeek API密钥")
+        try:
+            model = ChatDeepSeek(model=model_name, api_key=api_key, base_url=base_url)
+            logger.info(f"成功初始化DeepSeek模型")
+            return model
+        except Exception as e:
+            logger.error(f"初始化DeepSeek模型失败: {str(e)}")
+            raise
     elif model_provider == ModelProvider.GEMINI:
+        logger.info(f"初始化Gemini模型: {model_name}")
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key:
-            print(f"API Key Error: Please make sure GOOGLE_API_KEY is set in your .env file.")
-            raise ValueError("Google API key not found.  Please make sure GOOGLE_API_KEY is set in your .env file.")
-        return ChatGoogleGenerativeAI(model=model_name, api_key=api_key)
+            error_msg = "Google API key not found. Please make sure GOOGLE_API_KEY is set in your .env file."
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+        logger.info(f"成功获取Google API密钥")
+        try:
+            model = ChatGoogleGenerativeAI(model=model_name, api_key=api_key)
+            logger.info(f"成功初始化Gemini模型")
+            return model
+        except Exception as e:
+            logger.error(f"初始化Gemini模型失败: {str(e)}")
+            raise
     elif model_provider == ModelProvider.OLLAMA:
+        logger.info(f"初始化Ollama模型: {model_name}")
         # For Ollama, we use a base URL instead of an API key
         # Check if OLLAMA_HOST is set (for Docker on macOS)
         ollama_host = os.getenv("OLLAMA_HOST", "localhost")
         base_url = os.getenv("OLLAMA_BASE_URL", f"http://{ollama_host}:11434")
-        return ChatOllama(
-            model=model_name,
-            base_url=base_url,
-        )
+        logger.info(f"使用Ollama基础URL: {base_url}")
+        try:
+            model = ChatOllama(
+                model=model_name,
+                base_url=base_url,
+            )
+            logger.info(f"成功初始化Ollama模型")
+            return model
+        except Exception as e:
+            logger.error(f"初始化Ollama模型失败: {str(e)}")
+            raise
+    
+    error_msg = f"不支持的模型提供商: {model_provider}"
+    logger.error(error_msg)
+    raise ValueError(error_msg)
