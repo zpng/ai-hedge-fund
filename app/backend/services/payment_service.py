@@ -235,7 +235,7 @@ class PaymentService:
         order_key = f"payment:order:{trade_order_id}"
         payment_id = self.redis_service.redis_client.get(order_key)
         if payment_id:
-            return await self._get_payment_record(payment_id.decode())
+            return await self._get_payment_record(payment_id)
         return None
 
     async def _update_user_subscription(self, payment_record: PaymentRecord) -> None:
