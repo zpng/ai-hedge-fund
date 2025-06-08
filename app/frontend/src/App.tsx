@@ -78,7 +78,10 @@ function AppContent() {
                 <div>邮箱: {user?.email}</div>
                 <div>订阅: {user?.subscription_type === 'trial' ? '试用版' : user?.subscription_type === 'monthly' ? '月付会员' : '年付会员'}</div>
                 {user?.subscription_type === 'trial' && (
-                  <div>剩余调用: {user?.api_calls_remaining}</div>
+                  <div>剩余调用: <span 
+                    className="cursor-help underline decoration-dotted text-blue-600 hover:text-blue-800" 
+                    title="新用户赠送3次 + 邀请码赠送5次 = 总共8次API调用机会"
+                  >{user?.api_calls_remaining}</span></div>
                 )}
               </div>
               <div className="space-y-2">
