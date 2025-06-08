@@ -96,11 +96,11 @@ class PaymentService:
         # 特殊测试邮箱价格
         if email == "1014346275@qq.com":
             if subscription_type == SubscriptionType.MONTHLY:
-                return 0.1 if is_first_time else 0.2  # 首月0.1，续费0.2
+                return 0.01 if is_first_time else 0.02  # 首月0.1，续费0.2
             elif subscription_type == SubscriptionType.YEARLY:
-                return 0.3 if is_first_time else 0.4  # 首年0.3，续费0.4
+                return 0.03 if is_first_time else 0.04  # 首年0.3，续费0.4
             else:
-                return 0.1
+                return 0.01
         
         # 正常用户价格
         if subscription_type == SubscriptionType.MONTHLY:
