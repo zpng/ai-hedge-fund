@@ -20,6 +20,7 @@ export function Login() {
   const [registrationStep, setRegistrationStep] = React.useState<"form" | "verify">("form");
   const [error, setError] = React.useState<string | null>(null);
   const [codeSent, setCodeSent] = React.useState(false);
+  const [emailVerified, setEmailVerified] = React.useState(false);
 
   // 登录处理
   const handleLogin = async (e: React.FormEvent) => {
@@ -89,9 +90,8 @@ export function Login() {
     }
   };
 
-  // 注册第一步：验证邮箱
-  const handleVerifyEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // 验证邮箱
+  const handleVerifyEmail = async () => {
     if (!verificationCode.trim()) {
       toast({
         variant: "destructive",
@@ -106,7 +106,7 @@ export function Login() {
 
     try {
       await verifyEmail(email, verificationCode);
-      setRegistrationStep('form');
+      setEmailVerified(true);
       toast({
         title: "验证成功",
         description: "邮箱验证成功，请设置密码完成注册",
@@ -237,62 +237,59 @@ export function Login() {
 
           <TabsContent value="register">
             <Card className="p-8">
-              {registrationStep === 'form' ? (
-                <form onSubmit={handleRegister} className="space-y-6">
-                  <div>
-                    <label htmlFor="register-email" className="block text-sm font-medium text-gray-700">
-                      邮箱
-                    </label>
-                    <div className="flex space-x-2">
-                      <Input
-                        id="register-email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="请输入邮箱"
-                        className="mt-1 flex-1"
-                        required
-                        disabled={codeSent}
-                      />
-                      <Button 
-                        type="button" 
-                        onClick={handleSendCode} 
-                        className="mt-1" 
-                        disabled={isLoading || codeSent}
-                      >
-                        {codeSent ? '已发送' : '发送验证码'}
-                      </Button>
-                    </div>
+              <form onSubmit={handleRegister} className="space-y-6">
+                <div>
+                  <label htmlFor="register-email" className="block text-sm font-medium text-gray-700">
+                    邮箱
+                  </label>
+                  <div className="flex space-x-2">
+                    <Input
+                      id="register-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="请输入邮箱"
+                      className="mt-1 flex-1"
+                      required
+                      disabled={codeSent}
+                    />
+                    <Button 
+                      type="button" 
+                      onClick={handleSendCode} 
+                      className="mt-1" 
+                      disabled={isLoading || codeSent}
+                    >
+                      {codeSent ? '已发送' : '发送验证码'}
+                    </Button>
                   </div>
+                </div>
 
-                  {codeSent && (
-                    <div>
-                      <label htmlFor="verification-code" className="block text-sm font-medium text-gray-700">
-                        验证码
-                      </label>
-                      <div className="flex space-x-2">
-                        <Input
-                          id="verification-code"
-                          type="text"
-                          value={verificationCode}
-                          onChange={(e) => setVerificationCode(e.target.value)}
-                          placeholder="请输入6位验证码"
-                          className="mt-1 flex-1"
-                          maxLength={6}
-                          required
-                        />
-                        <Button 
-                          type="button" 
-                          onClick={handleVerifyEmail} 
-                          className="mt-1" 
-                          disabled={isLoading}
-                          variant="outline"
-                        >
-                          验证
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                <div>
+                  <label htmlFor="verification-code" className="block text-sm font-medium text-gray-700">
+                    验证码
+                  </label>
+                  <div className="flex space-x-2">
+                    <Input
+                      id="verification-code"
+                      type="text"
+                      value={verificationCode}
+                      onChange={(e) => setVerificationCode(e.target.value)}
+                      placeholder="请输入6位验证码"
+                      className="mt-1 flex-1"
+                      maxLength={6}
+                      required
+                    />
+                    <Button 
+                      type="button" 
+                      onClick={handleVerifyEmail} 
+                      className={`mt-1 ${emailVerified ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                      disabled={isLoading || emailVerified}
+                      variant={emailVerified ? "default" : "outline"}
+                    >
+                      {emailVerified ? '已验证' : '验证'}
+                    </Button>
+                  </div>
+                </div>
 
                   <div>
                     <label htmlFor="register-password" className="block text-sm font-medium text-gray-700">
@@ -347,12 +344,11 @@ export function Login() {
                   <Button
                     type="submit"
                     className="w-full"
-                    disabled={isLoading || !codeSent || !verificationCode}
+                    disabled={isLoading || !emailVerified}
                   >
                     {isLoading ? '注册中...' : '注册'}
                   </Button>
                 </form>
-              ) : null}
             </Card>
           </TabsContent>
         </Tabs>
