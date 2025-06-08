@@ -254,13 +254,12 @@ class RedisService:
         
         invite = InviteCode.model_validate_json(invite_data)
         
-        if not invite.is_active or invite.used_at:
-            return None
-        
-        # Mark as used
-        invite.used_at = datetime.now()
+        # Mark as used or update user_id
+        if not invite.used_at:
+            invite.used_at = datetime.now()
         invite.used_by = used_by
-        invite.is_active = False
+        if used_by != "temp_user_id":
+            invite.is_active = False
         
         # Update in Redis
         self.redis_client.hset(f"invite:{code}", "data", invite.model_dump_json())
