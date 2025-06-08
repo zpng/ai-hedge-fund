@@ -283,16 +283,28 @@ class RedisService:
         
         # Check if user has active subscription
         if user.subscription_type != SubscriptionType.TRIAL:
+            # 实时检查订阅是否过期
             if user.subscription_expires_at and user.subscription_expires_at > datetime.now():
+                # 订阅仍然有效，允许API调用
                 user.total_api_calls += 1
                 await self.update_user(user)
                 return True
             else:
-                # Subscription expired, revert to trial with 0 calls
+                # 订阅已过期，立即将用户状态重置为试用版
+                old_subscription_type = user.subscription_type
                 user.subscription_type = SubscriptionType.TRIAL
-                user.api_calls_remaining = 0
+                user.api_calls_remaining = 0  # 过期后API调用次数归零
                 user.subscription_expires_at = None
                 await self.update_user(user)
+                
+                # 记录订阅过期日志
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(
+                    f"用户 {user.email} (ID: {user_id}) 的 {old_subscription_type} 订阅已过期，"
+                    f"已自动重置为试用版"
+                )
+                
                 return False
         
         # Trial user - check remaining calls

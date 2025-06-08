@@ -436,6 +436,25 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                       {getSubscriptionText(profile.subscription_info.type)}
                     </Badge>
                   </div>
+                  {profile.subscription_info.expires_at && profile.subscription_info.type !== 'trial' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">到期时间</label>
+                      <div className="text-lg text-gray-900">
+                        {new Date(profile.subscription_info.expires_at).toLocaleDateString('zh-CN', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                      {new Date(profile.subscription_info.expires_at) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && (
+                        <div className="text-sm text-orange-600 mt-1">
+                          ⚠️ 您的订阅即将到期，请及时续费
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {profile.subscription_info.type === 'trial' && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">剩余API调用次数</label>

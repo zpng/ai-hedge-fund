@@ -6,6 +6,7 @@ import traceback
 
 from app.backend.routes import api_router
 from app.backend.dependencies import get_redis_service
+from app.backend.services.subscription_checker import SubscriptionChecker
 
 # 配置日志
 logging.basicConfig(
@@ -50,15 +51,40 @@ app.add_middleware(
 # Include all routes
 app.include_router(api_router)
 
+# 全局订阅检查服务实例
+subscription_checker = None
+
 # 应用启动事件
 @app.on_event("startup")
 async def startup_event():
     """应用启动时执行的任务"""
+    global subscription_checker
     try:
+        # 初始化订阅检查服务
+        redis_service = get_redis_service()
+        subscription_checker = SubscriptionChecker(redis_service)
+        await subscription_checker.start()
+        logger.info("订阅检查服务已启动")
+        
         # 应用启动初始化
         logger.info("应用启动完成")
     except Exception as e:
         logger.error(f"启动时初始化失败: {str(e)}")
+
+# 应用关闭事件
+@app.on_event("shutdown")
+async def shutdown_event():
+    """应用关闭时执行的任务"""
+    global subscription_checker
+    try:
+        # 停止订阅检查服务
+        if subscription_checker:
+            await subscription_checker.stop()
+            logger.info("订阅检查服务已停止")
+        
+        logger.info("应用关闭完成")
+    except Exception as e:
+        logger.error(f"关闭时清理失败: {str(e)}")
 
 # 添加全局异常处理器
 @app.exception_handler(Exception)
