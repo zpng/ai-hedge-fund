@@ -1,7 +1,7 @@
 import logging
 from fastapi import APIRouter, HTTPException, Depends, Request, status
 from fastapi.responses import JSONResponse
-from typing import Dict, Any
+from typing import Dict, Any, List
 import traceback
 import logging
 
@@ -209,3 +209,76 @@ async def payment_notify(
 async def payment_return():
     """支付完成后的同步跳转页面"""
     return {"message": "支付处理中，请稍后刷新页面查看结果"}
+
+
+@router.get("/records")
+async def get_payment_records(
+    current_user: User = Depends(get_current_user),
+    payment_service: PaymentService = Depends(get_payment_service)
+):
+    """获取当前用户的购买记录"""
+    try:
+        logger.info(f"获取用户购买记录: 用户ID={current_user.id}")
+        
+        # 获取用户的所有支付记录
+        payment_records = await payment_service.get_user_payment_records(current_user.id)
+        
+        # 转换为前端需要的格式
+        records_data = []
+        for record in payment_records:
+            # 计算订阅开始和结束时间
+            start_time = record.paid_at if record.paid_at else record.created_at
+            end_time = None
+            is_active = False
+            
+            if record.status.value == "SUCCESS" and record.subscription_type:
+                # 根据订阅类型计算结束时间
+                if record.subscription_type.lower() == "monthly":
+                    from datetime import timedelta
+                    end_time = start_time + timedelta(days=30)
+                elif record.subscription_type.lower() == "yearly":
+                    from datetime import timedelta
+                    end_time = start_time + timedelta(days=365)
+                
+                # 判断是否仍在生效中
+                if end_time:
+                    from datetime import datetime, timezone
+                    current_time = datetime.now(timezone.utc)
+                    is_active = current_time < end_time
+            
+            record_data = {
+                "id": record.id,
+                "trade_order_id": record.trade_order_id,
+                "amount": record.amount,
+                "subscription_type": record.subscription_type,
+                "status": record.status.value,
+                "created_at": record.created_at.isoformat(),
+                "paid_at": record.paid_at.isoformat() if record.paid_at else None,
+                "start_time": start_time.isoformat() if start_time else None,
+                "end_time": end_time.isoformat() if end_time else None,
+                "is_active": is_active,
+                "payment_method": record.payment_method
+            }
+            records_data.append(record_data)
+        
+        logger.info(f"获取用户购买记录成功: 用户ID={current_user.id}, 记录数={len(records_data)}")
+        
+        return {
+            "status": "success",
+            "message": "获取购买记录成功",
+            "data": {
+                "records": records_data,
+                "total": len(records_data)
+            }
+        }
+        
+    except Exception as e:
+        # 记录详细错误信息
+        error_detail = traceback.format_exc()
+        logger.error(f"获取购买记录失败: {str(e)}\n{error_detail}")
+        
+        # 返回错误响应
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"获取购买记录失败: {str(e)}"
+        )

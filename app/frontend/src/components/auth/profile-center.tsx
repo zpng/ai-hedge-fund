@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/auth-context';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { User, Gift, CreditCard, TrendingUp } from 'lucide-react';
+import { User, Gift, CreditCard, TrendingUp, Receipt } from 'lucide-react';
 
 interface InviteCode {
   code: string;
@@ -15,6 +15,20 @@ interface InviteCode {
   used_by?: string;
   used_by_email?: string;
   is_active: boolean;
+}
+
+interface PaymentRecord {
+  id: string;
+  trade_order_id: string;
+  amount: number;
+  subscription_type: string;
+  status: string;
+  created_at: string;
+  paid_at?: string;
+  start_time?: string;
+  end_time?: string;
+  is_active: boolean;
+  payment_method?: string;
 }
 
 interface UserProfile {
@@ -40,6 +54,7 @@ const menuItems = [
   { id: 'account', label: '账户信息', icon: User },
   { id: 'invite', label: '邀请码管理', icon: Gift },
   { id: 'subscription', label: '订阅管理', icon: CreditCard },
+  { id: 'records', label: '购买记录', icon: Receipt },
   { id: 'analysis', label: '股票分析', icon: TrendingUp },
 ];
 
@@ -53,6 +68,8 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
   const [clearEmail, setClearEmail] = useState('');
   const [isClearingData, setIsClearingData] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly'); // 默认选中年付会员
+  const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>([]);
+  const [isLoadingRecords, setIsLoadingRecords] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -262,6 +279,10 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
             if (result.data.status === 'OD') {
               await refreshUser();
               await fetchProfile();
+              // 刷新购买记录
+              if (activeSection === 'records') {
+                await fetchPaymentRecords();
+              }
               toast({
                 title: "支付成功",
                 description: "订阅已更新，感谢您的支持！",
@@ -281,9 +302,56 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
     setTimeout(pollPaymentStatus, pollInterval);
   };
 
+  const fetchPaymentRecords = async () => {
+    if (!token) return;
+
+    setIsLoadingRecords(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/payment/records`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.status === 'success' && result.data) {
+          setPaymentRecords(result.data.records || []);
+        } else {
+          const errorMessage = result.message || '获取购买记录失败';
+          toast({
+            variant: "destructive",
+            title: "获取失败",
+            description: errorMessage,
+          });
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.detail || '获取购买记录失败';
+        toast({
+          variant: "destructive",
+          title: "获取失败",
+          description: errorMessage,
+        });
+      }
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "网络错误",
+        description: "请检查网络连接后重试",
+      });
+    } finally {
+      setIsLoadingRecords(false);
+    }
+  };
+
   // 点击导航项切换内容区域
   const handleSectionChange = (sectionId: string) => {
     setActiveSection(sectionId);
+    // 如果切换到购买记录页面，自动加载数据
+    if (sectionId === 'records' && paymentRecords.length === 0) {
+      fetchPaymentRecords();
+    }
   };
 
   useEffect(() => {
@@ -633,6 +701,105 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">您已是付费用户</h3>
                     <p className="text-gray-600">享受无限API调用和所有高级功能</p>
+                  </div>
+                )}
+              </Card>
+            </div>
+          )}
+
+          {/* 购买记录 */}
+          {activeSection === 'records' && (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">购买记录</h2>
+                <Button 
+                  onClick={fetchPaymentRecords}
+                  disabled={isLoadingRecords}
+                  variant="outline"
+                  size="sm"
+                >
+                  {isLoadingRecords ? '刷新中...' : '刷新'}
+                </Button>
+              </div>
+              <Card className="p-6">
+                {isLoadingRecords ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : paymentRecords.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Receipt className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                    <p>暂无购买记录</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {paymentRecords.map((record) => (
+                      <div key={record.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h4 className="font-medium text-gray-900">
+                              {record.subscription_type === 'monthly' ? '月付会员' : '年付会员'}
+                            </h4>
+                            <p className="text-sm text-gray-500">订单号: {record.trade_order_id}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-lg">¥{record.amount}</p>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              record.status === 'paid' 
+                                ? 'bg-green-100 text-green-800' 
+                                : record.status === 'pending'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {record.status === 'paid' ? '已支付' : 
+                               record.status === 'pending' ? '待支付' : '已取消'}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-500">购买时间:</span>
+                            <p className="font-medium">
+                              {new Date(record.created_at).toLocaleString('zh-CN')}
+                            </p>
+                          </div>
+                          
+                          {record.start_time && (
+                            <div>
+                              <span className="text-gray-500">开始时间:</span>
+                              <p className="font-medium">
+                                {new Date(record.start_time).toLocaleString('zh-CN')}
+                              </p>
+                            </div>
+                          )}
+                          
+                          {record.end_time && (
+                            <div>
+                              <span className="text-gray-500">结束时间:</span>
+                              <p className="font-medium">
+                                {new Date(record.end_time).toLocaleString('zh-CN')}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {record.status === 'paid' && (
+                          <div className="mt-3 pt-3 border-t">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-gray-500">订阅状态:</span>
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                record.is_active 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {record.is_active ? '生效中' : '已过期'}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
               </Card>

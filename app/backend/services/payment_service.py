@@ -6,7 +6,7 @@ from urllib.parse import urlencode, unquote_plus
 import requests
 import logging
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 from app.backend.models.payment import (
     PaymentStatus, XunhuPayRequest, XunhuPayResponse,
@@ -487,6 +487,53 @@ class PaymentService:
         if payment_id:
             return await self._get_payment_record(payment_id)
         return None
+    
+    async def get_user_payment_records(self, user_id: str) -> List[PaymentRecord]:
+        """获取用户的所有购买记录，按购买时间从最近到最远排序"""
+        try:
+            payment_records = []
+            
+            # 使用Redis的SCAN命令获取所有支付记录键
+            cursor = 0
+            while True:
+                try:
+                    cursor, keys = self.redis_service.redis_client.scan(
+                        cursor=cursor,
+                        match="payment:*",
+                        count=100
+                    )
+                    
+                    # 过滤出支付记录键（排除订单映射键）
+                    payment_keys = [key for key in keys if isinstance(key, str) and key.startswith("payment:") and not key.startswith("payment:order:")]
+                    
+                    for key in payment_keys:
+                        try:
+                            data = self.redis_service.redis_client.get(key)
+                            if data:
+                                payment_record = PaymentRecord.parse_raw(data)
+                                # 只返回当前用户的记录
+                                if payment_record.user_id == user_id:
+                                    payment_records.append(payment_record)
+                        except Exception as parse_error:
+                            logger.warning(f"解析支付记录失败: {key}, 错误: {str(parse_error)}")
+                            continue
+                    
+                    if cursor == 0:
+                        break
+                        
+                except Exception as scan_error:
+                    logger.error(f"Redis SCAN操作失败: {str(scan_error)}")
+                    break
+            
+            # 按创建时间从最近到最远排序
+            payment_records.sort(key=lambda x: x.created_at, reverse=True)
+            
+            logger.info(f"获取用户 {user_id} 的支付记录成功，共 {len(payment_records)} 条")
+            return payment_records
+            
+        except Exception as e:
+            logger.error(f"获取用户支付记录失败: {str(e)}")
+            return []
 
     async def _update_user_subscription(self, payment_record: PaymentRecord) -> None:
         """更新用户订阅信息"""
