@@ -450,7 +450,7 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                             day: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit',
-                            timeZone: 'UTC',
+                            timeZone: 'Asia/Shanghai',
                             timeZoneName: 'long'
                           }).replace('协调世界时', 'CST');
                         })()}
