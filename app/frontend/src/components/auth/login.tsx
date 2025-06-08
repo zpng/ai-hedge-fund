@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Mail, Lock, Shield, Sparkles, Eye, EyeOff } from "lucide-react";
 
 export function Login() {
   const { register, login, sendVerificationCode, verifyEmail } = useAuth();
@@ -23,6 +24,8 @@ export function Login() {
   const [error, setError] = React.useState<string | null>(null);
   const [codeSent, setCodeSent] = React.useState(false);
   const [emailVerified, setEmailVerified] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
   // 登录处理
   const handleLogin = async (e: React.FormEvent) => {
@@ -173,190 +176,311 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* 动态渐变背景 */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(120,119,198,0.3),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(147,51,234,0.2),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_60%,rgba(59,130,246,0.15),transparent_50%)]" />
+      </div>
+      
+      {/* 浮动装饰元素 */}
+      <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-xl animate-pulse" />
+      <div className="absolute bottom-20 right-20 w-40 h-40 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-xl animate-pulse delay-1000" />
+      <div className="absolute top-1/2 left-10 w-24 h-24 bg-gradient-to-r from-indigo-400/20 to-blue-400/20 rounded-full blur-xl animate-pulse delay-500" />
+      
+      <div className="relative z-10 max-w-md w-full mx-4">
+        {/* 标题区域 */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl mb-4 shadow-lg">
+            <Sparkles className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
             AI股票分析
-          </h2>
+          </h1>
+          <p className="text-gray-600 mt-2 text-sm">
+            智能投资决策，专业数据分析
+          </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'login' | 'register')}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">登录</TabsTrigger>
-            <TabsTrigger value="register">注册</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg">
+            <TabsTrigger 
+              value="login" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+            >
+              登录
+            </TabsTrigger>
+            <TabsTrigger 
+              value="register" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+            >
+              注册
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="login">
-            <Card className="p-8">
+            <Card className="bg-white/80 backdrop-blur-xl border border-white/20 shadow-2xl p-8">
               <form onSubmit={handleLogin} className="space-y-6">
-                <div>
-                  <label htmlFor="login-email" className="block text-sm font-medium text-gray-700">
-                    邮箱
+                <div className="space-y-2">
+                  <label htmlFor="login-email" className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-blue-600" />
+                    邮箱地址
                   </label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="请输入邮箱"
-                    className="mt-1"
-                    required
-                  />
+                  <div className="relative">
+                    <Input
+                      id="login-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="请输入您的邮箱地址"
+                      className="pl-10 h-12 bg-white/50 border-gray-200/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 rounded-xl"
+                      required
+                    />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  </div>
                 </div>
 
-                <div>
-                  <label htmlFor="login-password" className="block text-sm font-medium text-gray-700">
+                <div className="space-y-2">
+                  <label htmlFor="login-password" className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-blue-600" />
                     密码
                   </label>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="请输入密码"
-                    className="mt-1"
-                    required
-                  />
+                  <div className="relative">
+                    <Input
+                      id="login-password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="请输入您的密码"
+                      className="pl-10 pr-10 h-12 bg-white/50 border-gray-200/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 rounded-xl"
+                      required
+                    />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 {error && activeTab === 'login' && (
-                  <div className="text-red-600 text-sm">
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full" />
                     {error}
                   </div>
                 )}
 
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
                   disabled={isLoading}
                 >
-                  {isLoading ? '登录中...' : '登录'}
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      登录中...
+                    </div>
+                  ) : (
+                    '立即登录'
+                  )}
                 </Button>
               </form>
             </Card>
           </TabsContent>
 
           <TabsContent value="register">
-            <Card className="p-8">
+            <Card className="bg-white/80 backdrop-blur-xl border border-white/20 shadow-2xl p-8">
               <form onSubmit={handleRegister} className="space-y-6">
-                <div>
-                  <label htmlFor="register-email" className="block text-sm font-medium text-gray-700">
-                    邮箱
+                <div className="space-y-2">
+                  <label htmlFor="register-email" className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-blue-600" />
+                    邮箱地址
                   </label>
-                  <div className="flex space-x-2">
-                    <Input
-                      id="register-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="请输入邮箱"
-                      className="mt-1 flex-1"
-                      required
-                      disabled={codeSent}
-                    />
+                  <div className="flex gap-3">
+                    <div className="relative flex-1">
+                      <Input
+                        id="register-email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="请输入您的邮箱地址"
+                        className="pl-10 h-12 bg-white/50 border-gray-200/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 rounded-xl"
+                        required
+                        disabled={codeSent}
+                      />
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    </div>
                     <Button 
                       type="button" 
                       onClick={handleSendCode} 
-                      className="mt-1" 
+                      className={`h-12 px-6 rounded-xl font-semibold transition-all duration-300 ${
+                        codeSent 
+                          ? 'bg-green-600 hover:bg-green-700 text-white' 
+                          : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
+                      }`}
                       disabled={isSendingCode || codeSent}
                     >
-                      {isSendingCode ? '发送中...' : codeSent ? '已发送' : '发送验证码'}
+                      {isSendingCode ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          发送中
+                        </div>
+                      ) : codeSent ? '已发送' : '发送验证码'}
                     </Button>
                   </div>
                 </div>
 
-                <div>
-                  <label htmlFor="verification-code" className="block text-sm font-medium text-gray-700">
+                <div className="space-y-2">
+                  <label htmlFor="verification-code" className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-blue-600" />
                     验证码
                   </label>
-                  <div className="flex space-x-2">
-                    <Input
-                      id="verification-code"
-                      type="text"
-                      value={verificationCode}
-                      onChange={(e) => setVerificationCode(e.target.value)}
-                      placeholder="请输入6位验证码"
-                      className="mt-1 flex-1"
-                      maxLength={6}
-                      required
-                    />
+                  <div className="flex gap-3">
+                    <div className="relative flex-1">
+                      <Input
+                        id="verification-code"
+                        type="text"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value)}
+                        placeholder="请输入6位验证码"
+                        className="pl-10 h-12 bg-white/50 border-gray-200/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 rounded-xl text-center tracking-widest"
+                        maxLength={6}
+                        required
+                      />
+                      <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    </div>
                     <Button 
                       type="button" 
                       onClick={handleVerifyEmail} 
-                      className={`mt-1 ${emailVerified ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                      className={`h-12 px-6 rounded-xl font-semibold transition-all duration-300 ${
+                        emailVerified 
+                          ? 'bg-green-600 hover:bg-green-700 text-white' 
+                          : 'bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50'
+                      }`}
                       disabled={isVerifyingEmail || emailVerified}
-                      variant={emailVerified ? "default" : "outline"}
                     >
-                      {isVerifyingEmail ? '验证中...' : emailVerified ? '已验证' : '验证'}
+                      {isVerifyingEmail ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
+                          验证中
+                        </div>
+                      ) : emailVerified ? '已验证' : '验证'}
                     </Button>
                   </div>
                 </div>
 
-                  <div>
-                    <label htmlFor="register-password" className="block text-sm font-medium text-gray-700">
-                      密码
-                    </label>
+                <div className="space-y-2">
+                  <label htmlFor="register-password" className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-blue-600" />
+                    设置密码
+                  </label>
+                  <div className="relative">
                     <Input
                       id="register-password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="请输入密码"
-                      className="mt-1"
+                      placeholder="请设置您的密码"
+                      className="pl-10 pr-10 h-12 bg-white/50 border-gray-200/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 rounded-xl"
                       required
                     />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
+                </div>
 
-                  <div>
-                    <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
-                      确认密码
-                    </label>
+                <div className="space-y-2">
+                  <label htmlFor="confirm-password" className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-blue-600" />
+                    确认密码
+                  </label>
+                  <div className="relative">
                     <Input
                       id="confirm-password"
-                      type="password"
+                      type={showConfirmPassword ? "text" : "password"}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="请再次输入密码"
-                      className="mt-1"
+                      className="pl-10 pr-10 h-12 bg-white/50 border-gray-200/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 rounded-xl"
                       required
                     />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
+                </div>
 
-                  <div>
-                    <label htmlFor="inviteCode" className="block text-sm font-medium text-gray-700">
-                      邀请码 (可选)
-                    </label>
+                <div className="space-y-2">
+                  <label htmlFor="inviteCode" className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-purple-600" />
+                    邀请码 <span className="text-xs text-gray-500 font-normal">(可选)</span>
+                  </label>
+                  <div className="relative">
                     <Input
                       id="inviteCode"
                       type="text"
                       value={inviteCode}
                       onChange={(e) => setInviteCode(e.target.value)}
-                      placeholder="输入邀请码可获得5次免费试用"
-                      className="mt-1"
+                      placeholder="输入邀请码获得5次免费试用"
+                      className="pl-10 h-12 bg-white/50 border-gray-200/50 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300 rounded-xl"
                     />
+                    <Sparkles className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   </div>
+                </div>
 
-                  {error && activeTab === 'register' && (
-                    <div className="text-red-600 text-sm">
-                      {error}
+                {error && activeTab === 'register' && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full" />
+                    {error}
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  className={`w-full h-12 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] ${
+                    emailVerified 
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                  disabled={isLoading || !emailVerified}
+                >
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      注册中...
                     </div>
+                  ) : (
+                    '创建账户'
                   )}
-
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={isLoading || !emailVerified}
-                  >
-                    {isLoading ? '注册中...' : '注册'}
-                  </Button>
-                </form>
+                </Button>
+              </form>
             </Card>
           </TabsContent>
         </Tabs>
 
-        <div className="text-center text-sm text-gray-600">
-          <p>使用邀请码注册可获得5次免费API调用</p>
+        {/* 底部提示 */}
+        <div className="text-center mt-8">
+          <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20 shadow-lg">
+            <Sparkles className="w-4 h-4 text-purple-600" />
+            <span className="text-sm text-gray-600">
+              使用邀请码注册可获得 <span className="font-semibold text-purple-600">5次免费</span> API调用
+            </span>
+          </div>
         </div>
       </div>
     </div>
