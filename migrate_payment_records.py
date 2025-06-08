@@ -28,7 +28,7 @@ def migrate_payment_records():
     """迁移支付记录到新的索引结构"""
     try:
         # 获取Redis连接
-        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+        redis_url = os.getenv("UPSTASH_REDIS_URL", "rediss://default:Aa6MAAIjcDEzZTBiMTM3Y2ZiMTk0MDNkYTAyMTBhNjVmMWIzZWUxYXAxMA@sought-lab-44684.upstash.io:6379")
         redis_service = RedisService(redis_url)
         
         logger.info("开始迁移支付记录...")
