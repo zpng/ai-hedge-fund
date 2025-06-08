@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from src.llm.models import ModelProvider
@@ -24,7 +24,7 @@ class HedgeFundRequest(BaseModel):
     tickers: List[str]
     selected_agents: List[str]
     agent_models: Optional[List[AgentModelConfig]] = None
-    end_date: Optional[str] = Field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d"))
+    end_date: Optional[str] = Field(default_factory=lambda: datetime.now(timezone.utc).strftime("%Y-%m-%d"))
     start_date: Optional[str] = None
     model_name: str = "gpt-4o"
     model_provider: ModelProvider = ModelProvider.OPENAI

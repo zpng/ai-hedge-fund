@@ -440,13 +440,20 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">到期时间</label>
                       <div className="text-lg text-gray-900">
-                        {new Date(profile.subscription_info.expires_at).toLocaleDateString('zh-CN', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                        {(() => {
+                          const date = new Date(profile.subscription_info.expires_at);
+                          // 手动添加8小时偏移量
+                          const beijingTime = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+                          return beijingTime.toLocaleString('zh-CN', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            timeZone: 'UTC',
+                            timeZoneName: 'long'
+                          }).replace('协调世界时', 'CST');
+                        })()}
                       </div>
                       {new Date(profile.subscription_info.expires_at) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && (
                         <div className="text-sm text-orange-600 mt-1">

@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 
 from ..models.user import User, SubscriptionType
@@ -88,7 +88,7 @@ class SubscriptionChecker:
                 logger.info("没有找到任何用户")
                 return expired_users
             
-            current_time = datetime.now()
+            current_time = datetime.now(timezone.utc)
             logger.info(f"开始检查 {len(user_ids)} 个用户的订阅状态")
             
             for user_id in user_ids:
@@ -193,7 +193,7 @@ class SubscriptionChecker:
                 return True
             
             # 检查付费用户是否过期
-            if user.subscription_expires_at and user.subscription_expires_at <= datetime.now():
+            if user.subscription_expires_at and user.subscription_expires_at <= datetime.now(timezone.utc):
                 # 订阅已过期，更新用户状态
                 await self._handle_expired_user(user)
                 return False

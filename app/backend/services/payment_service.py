@@ -5,7 +5,7 @@ import hashlib
 from urllib.parse import urlencode, unquote_plus
 import requests
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 
 from app.backend.models.payment import (
@@ -134,7 +134,7 @@ class PaymentService:
                 amount=amount,
                 subscription_type=subscription_type,
                 status=PaymentStatus.PENDING,
-                created_at=datetime.now()
+                created_at=datetime.now(timezone.utc)
             )
             
             # 保存支付记录到Redis
@@ -305,7 +305,7 @@ class PaymentService:
                     if status == "OD":  # 支付成功
                         if payment_record.status != PaymentStatus.SUCCESS:
                             payment_record.status = PaymentStatus.SUCCESS
-                            payment_record.paid_at = datetime.now()
+                            payment_record.paid_at = datetime.now(timezone.utc)
                             payment_record.transaction_id = data.get("open_order_id")
                             await self._save_payment_record(payment_record)
                             
@@ -429,7 +429,7 @@ class PaymentService:
                 
                 # 更新支付状态为成功
                 payment_record.status = PaymentStatus.SUCCESS
-                payment_record.paid_at = datetime.now()
+                payment_record.paid_at = datetime.now(timezone.utc)
                 payment_record.transaction_id = transaction_id
                 
                 logger.info(f"订单支付成功: {trade_order_id}, 交易号: {transaction_id}")

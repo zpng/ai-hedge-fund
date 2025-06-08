@@ -1,7 +1,7 @@
 import json
 import random
 import string
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, List
 import redis
 from app.backend.models.user import User, InviteCode, VerificationCode, SubscriptionType, UserStatus
@@ -25,7 +25,7 @@ class RedisService:
             id=user_id,
             email=email,
             password_hash=password_hash,
-            created_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
             subscription_type=SubscriptionType.TRIAL,
             api_calls_remaining=total_calls,
             invited_by=invited_by,
@@ -93,7 +93,7 @@ class RedisService:
     async def update_last_login(self, user_id: str) -> None:
         user = await self.get_user_by_id(user_id)
         if user:
-            user.last_login = datetime.now()
+            user.last_login = datetime.now(timezone.utc)
             await self.update_user(user)
     
     # Verification code management
@@ -102,8 +102,8 @@ class RedisService:
         verification = VerificationCode(
             email=email,
             code=code,
-            created_at=datetime.now(),
-            expires_at=datetime.now() + timedelta(minutes=1)
+            created_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(timezone.utc) + timedelta(minutes=1)
         )
         
         # Store verification code (expires in 1 minute)
@@ -121,7 +121,7 @@ class RedisService:
         
         verification = VerificationCode.model_validate_json(verification_data)
         
-        if verification.is_used or verification.expires_at < datetime.now():
+        if verification.is_used or verification.expires_at < datetime.now(timezone.utc):
             return False
         
         if verification.code != code:
@@ -140,8 +140,8 @@ class RedisService:
         verification = VerificationCode(
             email=email,
             code=code,
-            created_at=datetime.now(),
-            expires_at=datetime.now() + timedelta(minutes=10)  # 10 minutes for password reset
+            created_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(timezone.utc) + timedelta(minutes=10)  # 10 minutes for password reset
         )
         
         # Store password reset code (expires in 10 minutes)
@@ -160,7 +160,7 @@ class RedisService:
         
         verification = VerificationCode.model_validate_json(verification_data)
         
-        if verification.is_used or verification.expires_at < datetime.now():
+        if verification.is_used or verification.expires_at < datetime.now(timezone.utc):
             return False
         
         if verification.code != code:
@@ -178,7 +178,7 @@ class RedisService:
         
         verification = VerificationCode.model_validate_json(verification_data)
         
-        if verification.is_used or verification.expires_at < datetime.now():
+        if verification.is_used or verification.expires_at < datetime.now(timezone.utc):
             return False
         
         if verification.code != code:
@@ -208,7 +208,7 @@ class RedisService:
             invite = InviteCode(
                 code=code,
                 user_id=user_id,
-                created_at=datetime.now()
+                created_at=datetime.now(timezone.utc)
             )
             
             # Store invite code
@@ -256,7 +256,7 @@ class RedisService:
         
         # Mark as used or update user_id
         if not invite.used_at:
-            invite.used_at = datetime.now()
+            invite.used_at = datetime.now(timezone.utc)
         invite.used_by = used_by
         if used_by != "temp_user_id":
             invite.is_active = False
@@ -284,7 +284,7 @@ class RedisService:
         # Check if user has active subscription
         if user.subscription_type != SubscriptionType.TRIAL:
             # 实时检查订阅是否过期
-            if user.subscription_expires_at and user.subscription_expires_at > datetime.now():
+            if user.subscription_expires_at and user.subscription_expires_at > datetime.now(timezone.utc):
                 # 订阅仍然有效，允许API调用
                 user.total_api_calls += 1
                 await self.update_user(user)
@@ -333,9 +333,9 @@ class RedisService:
         user.subscription_type = subscription_type
         
         if subscription_type == SubscriptionType.MONTHLY:
-            user.subscription_expires_at = datetime.now() + timedelta(days=30)
+            user.subscription_expires_at = datetime.now(timezone.utc) + timedelta(days=30)
         elif subscription_type == SubscriptionType.YEARLY:
-            user.subscription_expires_at = datetime.now() + timedelta(days=365)
+            user.subscription_expires_at = datetime.now(timezone.utc) + timedelta(days=365)
         else:
             user.subscription_expires_at = None
         
