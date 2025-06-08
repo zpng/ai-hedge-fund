@@ -18,7 +18,7 @@ class RedisService:
         
         # 计算API调用次数赠送
         new_user_gift = 3  # 新用户默认赠送3次
-        invite_gift = 4 if invited_by else 0  # 邀请码赠送4次
+        invite_gift = 5 if invited_by else 0  # 邀请码赠送5次
         total_calls = new_user_gift + invite_gift
         
         user = User(
