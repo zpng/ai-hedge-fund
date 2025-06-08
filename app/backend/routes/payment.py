@@ -231,12 +231,13 @@ async def get_payment_records(
             end_time = None
             is_active = False
             
-            if record.status.value == "SUCCESS" and record.subscription_type:
+            if record.status.value == "success" and record.subscription_type:
                 # 根据订阅类型计算结束时间
-                if record.subscription_type.lower() == "monthly":
+                subscription_type_str = str(record.subscription_type).lower()
+                if subscription_type_str == "monthly":
                     from datetime import timedelta
                     end_time = start_time + timedelta(days=30)
-                elif record.subscription_type.lower() == "yearly":
+                elif subscription_type_str == "yearly":
                     from datetime import timedelta
                     end_time = start_time + timedelta(days=365)
                 
