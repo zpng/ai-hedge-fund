@@ -398,13 +398,13 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
                     className="w-full"
                     variant="outline"
                   >
-                    月付会员 - ¥0.01/月
+                    月付会员 - ¥66/首月，之后¥88/月
                   </Button>
                   <Button 
                     onClick={() => subscribe('yearly')}
                     className="w-full"
                   >
-                    年付会员 - ¥0.01/年 (省2个月)
+                    年付会员 - ¥880/首年，之后¥968/年
                   </Button>
                 </div>
               </div>

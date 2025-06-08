@@ -448,7 +448,8 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                       <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-300 transition-colors">
                         <div className="text-center">
                           <h4 className="text-lg font-semibold mb-2">月付会员</h4>
-                          <div className="text-3xl font-bold text-blue-600 mb-4">¥0.01<span className="text-sm text-gray-500">/月</span></div>
+                          <div className="text-3xl font-bold text-blue-600 mb-4">¥66<span className="text-sm text-gray-500">/首月</span></div>
+                          <div className="text-sm text-gray-500 mb-4">之后每月¥88</div>
                           <Button 
                             onClick={() => subscribe('monthly')}
                             className="w-full"
@@ -464,8 +465,9 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                         </div>
                         <div className="text-center">
                           <h4 className="text-lg font-semibold mb-2">年付会员</h4>
-                          <div className="text-3xl font-bold text-blue-600 mb-2">¥0.01<span className="text-sm text-gray-500">/年</span></div>
-                          <div className="text-sm text-green-600 mb-4">节省2个月费用</div>
+                          <div className="text-3xl font-bold text-blue-600 mb-2">¥880<span className="text-sm text-gray-500">/首年</span></div>
+                          <div className="text-sm text-gray-500 mb-2">之后每年¥968</div>
+                          <div className="text-sm text-green-600 mb-4">相比月付节省¥176</div>
                           <Button 
                             onClick={() => subscribe('yearly')}
                             className="w-full bg-blue-600 hover:bg-blue-700"

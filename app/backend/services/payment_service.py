@@ -62,12 +62,40 @@ class PaymentService:
     def _generate_trade_order_id(self) -> str:
         """生成商户订单号"""
         return f"XH{int(time.time())}{uuid.uuid4().hex[:8]}"
+    
+    async def _calculate_price(self, email: str, subscription_type: SubscriptionType, user_id: str) -> float:
+        """根据邮箱、订阅类型和用户历史记录计算价格"""
+        # 检查用户是否有过付费订阅记录
+        user = await self.redis_service.get_user_by_id(user_id)
+        is_first_time = user.subscription_type == SubscriptionType.TRIAL
+        
+        # 特殊测试邮箱价格
+        if email == "1014346275@qq.com":
+            if subscription_type == SubscriptionType.MONTHLY:
+                return 0.1 if is_first_time else 0.2  # 首月0.1，续费0.2
+            elif subscription_type == SubscriptionType.YEARLY:
+                return 0.3 if is_first_time else 0.4  # 首年0.3，续费0.4
+            else:
+                return 0.1
+        
+        # 正常用户价格
+        if subscription_type == SubscriptionType.MONTHLY:
+            return 66.0 if is_first_time else 88.0  # 首月66元，续费88元
+        elif subscription_type == SubscriptionType.YEARLY:
+            return 880.0 if is_first_time else 968.0  # 首年880元，续费968元
+        else:
+            return 66.0  # 默认月付价格
 
     async def create_payment(self, user_id: str, subscription_type: SubscriptionType) -> PaymentRecord:
         """创建支付记录并获取支付链接"""
         try:
+            # 获取用户信息
+            user = await self.redis_service.get_user_by_id(user_id)
+            if not user:
+                raise ValueError("用户不存在")
+            
             # 确定支付金额
-            amount = 0.01  # 测试金额，实际应根据订阅类型设置
+            amount = await self._calculate_price(user.email, subscription_type, user_id)
             
             # 生成订单号
             trade_order_id = self._generate_trade_order_id()
