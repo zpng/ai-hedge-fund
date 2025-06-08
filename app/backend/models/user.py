@@ -103,9 +103,13 @@ class LoginResponse(BaseModel):
     user: User
 
 
+class InviteCodeWithEmail(InviteCode):
+    used_by_email: Optional[str] = None
+
+
 class UserProfile(BaseModel):
     user: User
-    invite_codes: list[InviteCode]
+    invite_codes: list[InviteCodeWithEmail]
     subscription_info: dict
 
 
