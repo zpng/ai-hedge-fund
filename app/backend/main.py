@@ -55,12 +55,10 @@ app.include_router(api_router)
 async def startup_event():
     """应用启动时执行的任务"""
     try:
-        # 执行用户数据迁移
-        redis_service = get_redis_service()
-        await redis_service.migrate_user_gift_calls()
-        logger.info("用户gift_calls字段迁移完成")
+        # 应用启动初始化
+        logger.info("应用启动完成")
     except Exception as e:
-        logger.error(f"启动时数据迁移失败: {str(e)}")
+        logger.error(f"启动时初始化失败: {str(e)}")
 
 # 添加全局异常处理器
 @app.exception_handler(Exception)

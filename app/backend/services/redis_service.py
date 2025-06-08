@@ -78,31 +78,7 @@ class RedisService:
             verification.is_used = True
             self.redis_client.setex(verification_key, 300, verification.model_dump_json())
     
-    async def migrate_user_gift_calls(self) -> None:
-        """迁移现有用户的gift_calls字段"""
-        # 获取所有用户
-        user_keys = self.redis_client.keys("user:*")
-        for user_key in user_keys:
-            user_data = self.redis_client.hget(user_key, "data")
-            if user_data:
-                try:
-                    user = User.model_validate_json(user_data)
-                    
-                    # 如果用户的gift_calls字段都为0，但有invited_by或api_calls_remaining > 0，则需要修复
-                    if user.new_user_gift_calls == 0 and user.invite_gift_calls == 0:
-                        # 为所有用户设置新用户赠送
-                        user.new_user_gift_calls = 3
-                        
-                        # 如果用户是通过邀请码注册的，设置邀请赠送
-                        if user.invited_by:
-                            user.invite_gift_calls = 5
-                        
-                        # 更新用户数据
-                        await self.update_user(user)
-                except Exception as e:
-                    # 跳过无效的用户数据，避免阻塞整个迁移过程
-                    print(f"跳过无效用户数据 {user_key}: {str(e)}")
-                    continue
+
     
     async def get_user_by_id(self, user_id: str) -> Optional[User]:
         user_data = self.redis_client.hget(f"user:{user_id}", "data")
@@ -252,7 +228,21 @@ class RedisService:
         for code in codes:
             invite_data = self.redis_client.hget(f"invite:{code}", "data")
             if invite_data:
-                invite_codes.append(InviteCode.model_validate_json(invite_data))
+                invite_code = InviteCode.model_validate_json(invite_data)
+                
+                # If the invite code was used, get the user's email
+                if invite_code.used_by:
+                    used_by_user = await self.get_user_by_id(invite_code.used_by)
+                    if used_by_user:
+                        # Add email to the invite code object
+                        invite_code_dict = invite_code.model_dump()
+                        invite_code_dict['used_by_email'] = used_by_user.email
+                        # Create a new InviteCode with the additional field
+                        invite_codes.append(invite_code_dict)
+                    else:
+                        invite_codes.append(invite_code)
+                else:
+                    invite_codes.append(invite_code)
         
         return invite_codes
     

@@ -13,6 +13,7 @@ interface InviteCode {
   created_at: string;
   used_at?: string;
   used_by?: string;
+  used_by_email?: string;
   is_active: boolean;
 }
 
@@ -499,11 +500,16 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                 <div className="space-y-4">
                   {profile.invite_codes.map((code) => (
                     <div key={code.code} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                      <div>
+                      <div className="flex-1">
                         <div className="font-mono text-lg font-semibold">{code.code}</div>
                         <div className="text-sm text-gray-600">
                           创建于 {new Date(code.created_at).toLocaleDateString('zh-CN')}
                         </div>
+                        {code.used_at && code.used_by_email && (
+                          <div className="text-sm text-blue-600 mt-1">
+                            被 {code.used_by_email} 使用于 {new Date(code.used_at).toLocaleDateString('zh-CN')}
+                          </div>
+                        )}
                       </div>
                       <div>
                         {code.used_at ? (
