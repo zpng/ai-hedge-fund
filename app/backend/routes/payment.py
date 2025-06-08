@@ -245,6 +245,9 @@ async def get_payment_records(
                 if end_time:
                     from datetime import datetime, timezone
                     current_time = datetime.now(timezone.utc)
+                    # 确保end_time也有时区信息
+                    if end_time.tzinfo is None:
+                        end_time = end_time.replace(tzinfo=timezone.utc)
                     is_active = current_time < end_time
             
             record_data = {
