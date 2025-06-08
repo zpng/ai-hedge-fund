@@ -298,17 +298,12 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
       <div className="w-64 bg-white shadow-sm border-r border-gray-200 flex flex-col">
         {/* 用户头像和基本信息 */}
         <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-              {profile.user.phone?.charAt(0) || 'U'}
+          <div>
+            <div className="font-semibold text-gray-900">
+              {'AI股票分析'}
             </div>
-            <div>
-              <div className="font-semibold text-gray-900">
-                {profile.user.phone || '用户'}
-              </div>
-              <div className="text-sm text-gray-500">
-                {profile.user.email || 'zhangpeng.eic@bytedance.com'}
-              </div>
+            <div className="text-sm text-gray-500">
+              {profile.user.email || 'zhangpeng.eic@bytedance.com'}
             </div>
           </div>
         </div>
