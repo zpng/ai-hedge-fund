@@ -341,13 +341,6 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
         {/* 底部操作按钮 */}
         <div className="p-4 border-t border-gray-200 space-y-2">
           <Button 
-            onClick={handleGoToComponents}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-            size="sm"
-          >
-            进入组件页面
-          </Button>
-          <Button 
             onClick={handleLogout} 
             variant="outline"
             className="w-full"
@@ -374,8 +367,8 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
               <Card className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">手机号</label>
-                    <div className="text-lg text-gray-900">{profile.user.phone}</div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">邮箱</label>
+                    <div className="text-lg text-gray-900">{profile.user.email || 'zhangpeng.eic@bytedance.com'}</div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">注册时间</label>
