@@ -2,6 +2,7 @@ import jwt
 from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import HTTPException, status
+import logging
 from app.backend.models.user import User
 from app.backend.services.redis_service import RedisService
 from app.backend.services.email_service import EmailService
@@ -13,27 +14,52 @@ class AuthService:
         self.email_service = email_service
         self.secret_key = secret_key
         self.algorithm = algorithm
+        self.logger = logging.getLogger(__name__)
     
     async def send_verification_code(self, email: str) -> str:
         """Send verification code to user's email. Returns the code for testing purposes."""
-        # Check if user already exists
-        existing_user = await self.redis_service.get_user_by_email(email)
-        if existing_user:
-            # 如果用户已存在但邮箱未验证，允许重新发送验证码
-            if not existing_user.email_verified:
-                code = await self.redis_service.create_verification_code(email)
-                await self.email_service.send_verification_email(email, code)
-                return code
-            # 如果用户已存在且邮箱已验证，提示用户直接登录
+        try:
+            # Check if user already exists
+            existing_user = await self.redis_service.get_user_by_email(email)
+            if existing_user:
+                # 如果用户已存在但邮箱未验证，允许重新发送验证码
+                if not existing_user.email_verified:
+                    code = await self.redis_service.create_verification_code(email)
+                    email_sent = await self.email_service.send_verification_email(email, code)
+                    if not email_sent:
+                        self.logger.error(f"Failed to send verification email to {email}")
+                        raise HTTPException(
+                            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail="邮件发送失败，请检查邮箱地址是否正确或稍后重试"
+                        )
+                    self.logger.info(f"Verification code resent to existing unverified user: {email}")
+                    return code
+                # 如果用户已存在且邮箱已验证，提示用户直接登录
+                self.logger.warning(f"Attempt to send verification code to already verified email: {email}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="该邮箱已注册并验证，请直接登录"
+                )
+            
+            # 如果用户不存在，创建验证码并发送
+            code = await self.redis_service.create_verification_code(email)
+            email_sent = await self.email_service.send_verification_email(email, code)
+            if not email_sent:
+                self.logger.error(f"Failed to send verification email to new user: {email}")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="邮件发送失败，请检查邮箱地址是否正确或稍后重试"
+                )
+            self.logger.info(f"Verification code sent to new user: {email}")
+            return code
+        except HTTPException:
+            raise
+        except Exception as e:
+            self.logger.error(f"Unexpected error in send_verification_code for {email}: {str(e)}", exc_info=True)
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered and verified. Please login."
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="系统错误，请稍后重试"
             )
-        
-        # 如果用户不存在，创建验证码并发送
-        code = await self.redis_service.create_verification_code(email)
-        await self.email_service.send_verification_email(email, code)
-        return code
     
     async def register(self, email: str, password: str, invite_code: Optional[str] = None) -> User:
         """Register a new user."""

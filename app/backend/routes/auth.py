@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import List
+import logging
 from app.backend.models.user import (
     LoginRequest, VerifyEmailRequest, RegisterRequest, SendVerificationRequest,
     LoginResponse, UserProfile, SubscriptionRequest, ApiUsageResponse, 
@@ -12,6 +13,7 @@ from app.backend.dependencies import get_auth_service, get_redis_service
 
 router = APIRouter(prefix="/auth")
 security = HTTPBearer()
+logger = logging.getLogger(__name__)
 
 
 @router.post("/send-code")
@@ -23,7 +25,13 @@ async def send_verification_code(
     try:
         code = await auth_service.send_verification_code(request.email)
         return {"message": "验证码发送成功", "code": code}  # Remove code in production
+    except HTTPException as e:
+        # 记录业务逻辑错误
+        logger.warning(f"Send verification code failed for {request.email}: {e.detail}")
+        raise e
     except Exception as e:
+        # 记录系统错误
+        logger.error(f"System error when sending verification code to {request.email}: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"发送验证码失败: {str(e)}"
