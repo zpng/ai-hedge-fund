@@ -153,7 +153,9 @@ async def get_user_profile(
         "type": current_user.subscription_type,
         "expires_at": current_user.subscription_expires_at,
         "api_calls_remaining": current_user.api_calls_remaining,
-        "total_api_calls": current_user.total_api_calls
+        "total_api_calls": current_user.total_api_calls,
+        "new_user_gift_calls": current_user.new_user_gift_calls,
+        "invite_gift_calls": current_user.invite_gift_calls
     }
     
     return UserProfile(
@@ -171,6 +173,8 @@ async def get_api_usage(
     return ApiUsageResponse(
         calls_remaining=current_user.api_calls_remaining,
         total_calls=current_user.total_api_calls,
+        new_user_gift_calls=current_user.new_user_gift_calls,
+        invite_gift_calls=current_user.invite_gift_calls,
         subscription_type=current_user.subscription_type,
         subscription_expires_at=current_user.subscription_expires_at
     )

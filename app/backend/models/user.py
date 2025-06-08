@@ -31,6 +31,8 @@ class User(BaseModel):
     total_api_calls: int = 0
     invited_by: Optional[str] = None  # User ID who invited this user
     email_verified: bool = False
+    new_user_gift_calls: int = 0  # API calls gifted for new user registration
+    invite_gift_calls: int = 0  # API calls gifted from invite code
     
     @staticmethod
     def hash_password(password: str) -> str:
@@ -115,5 +117,7 @@ class SubscriptionRequest(BaseModel):
 class ApiUsageResponse(BaseModel):
     calls_remaining: int
     total_calls: int
+    new_user_gift_calls: int
+    invite_gift_calls: int
     subscription_type: SubscriptionType
     subscription_expires_at: Optional[datetime]

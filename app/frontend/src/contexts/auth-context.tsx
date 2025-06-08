@@ -12,6 +12,8 @@ interface User {
   api_calls_remaining: number;
   total_api_calls: number;
   invited_by?: string;
+  new_user_gift_calls: number;
+  invite_gift_calls: number;
 }
 
 interface AuthContextType {

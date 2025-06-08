@@ -23,6 +23,8 @@ interface UserProfile {
     expires_at?: string;
     api_calls_remaining: number;
     total_api_calls: number;
+    new_user_gift_calls: number;
+    invite_gift_calls: number;
   };
 }
 
@@ -336,12 +338,21 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
                 </div>
               </div>
               {profile.subscription_info.type === 'trial' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">剩余API调用次数</label>
-                  <div className="mt-1 text-sm text-gray-900">
-                    {profile.subscription_info.api_calls_remaining}
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">剩余API调用次数</label>
+                    <div className="mt-1 text-sm text-gray-900">
+                      {profile.subscription_info.api_calls_remaining}
+                    </div>
                   </div>
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">赠送次数详情</label>
+                    <div className="mt-1 space-y-1 text-sm text-gray-600">
+                      <div>新用户赠送: {profile.subscription_info.new_user_gift_calls} 次</div>
+                      <div>邀请码赠送: {profile.subscription_info.invite_gift_calls} 次</div>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </Card>

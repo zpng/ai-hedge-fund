@@ -15,15 +15,23 @@ class RedisService:
     async def create_user(self, email: str, password: str, invited_by: Optional[str] = None, email_verified: bool = False) -> User:
         user_id = self._generate_user_id()
         password_hash = User.hash_password(password)
+        
+        # 计算API调用次数赠送
+        new_user_gift = 3  # 新用户默认赠送3次
+        invite_gift = 5 if invited_by else 0  # 邀请码赠送5次
+        total_calls = new_user_gift + invite_gift
+        
         user = User(
             id=user_id,
             email=email,
             password_hash=password_hash,
             created_at=datetime.now(),
             subscription_type=SubscriptionType.TRIAL,
-            api_calls_remaining=5 if invited_by else 0,  # 5 free calls if invited
+            api_calls_remaining=total_calls,
             invited_by=invited_by,
-            email_verified=email_verified
+            email_verified=email_verified,
+            new_user_gift_calls=new_user_gift,
+            invite_gift_calls=invite_gift
         )
         
         # Store user data
