@@ -28,7 +28,7 @@ class EmailService:
             <h2>AI股票分析 - 邮箱验证</h2>
             <p>您好，</p>
             <p>您的验证码是: <strong style="font-size: 18px;">{verification_code}</strong></p>
-            <p>此验证码将在5分钟后过期。</p>
+            <p>此验证码将在1分钟后过期。</p>
             <p>如果您没有请求此验证码，请忽略此邮件。</p>
             <p>谢谢！</p>
             <p>AI股票分析团队</p>

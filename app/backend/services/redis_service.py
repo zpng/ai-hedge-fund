@@ -93,12 +93,12 @@ class RedisService:
             email=email,
             code=code,
             created_at=datetime.now(),
-            expires_at=datetime.now() + timedelta(minutes=5)
+            expires_at=datetime.now() + timedelta(minutes=1)
         )
         
-        # Store verification code (expires in 5 minutes)
+        # Store verification code (expires in 1 minute)
         key = f"verification:{email}"
-        self.redis_client.setex(key, 300, verification.model_dump_json())
+        self.redis_client.setex(key, 60, verification.model_dump_json())
         
         return code
     
