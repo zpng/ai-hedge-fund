@@ -4,6 +4,7 @@ import { Flow } from './components/Flow';
 import { Layout } from './components/Layout';
 import Login from './components/auth/login';
 import { UserProfile } from './components/auth/user-profile';
+import ProfileCenter from './components/auth/profile-center';
 import { AuthProvider, useAuth } from './contexts/auth-context';
 import { Button } from './components/ui/button';
 import { Toaster } from './components/ui/toaster';
@@ -65,7 +66,8 @@ function AppContent() {
 
   return (
     <Routes>
-      <Route path="/home" element={<UserProfile />} />
+      <Route path="/home" element={<ProfileCenter />} />
+      <Route path="/profile" element={<UserProfile />} />
       <Route path="/components" element={
         <Layout
           leftSidebar={showLeftSidebar ? <div className="p-4 text-white">Left Sidebar Content</div> : undefined}
