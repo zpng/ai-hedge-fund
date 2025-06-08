@@ -184,8 +184,8 @@ export function useNodeContext() {
   const context = useContext(NodeContext);
   
   if (context === undefined) {
-    throw new Error('useNodeContext must be used within a NodeProvider');
+    throw new Error('useNodeContext必须在NodeProvider内使用');
   }
   
   return context;
-} 
+}

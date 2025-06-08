@@ -12,7 +12,7 @@ const FlowContext = createContext<FlowContextType | null>(null);
 export function useFlowContext() {
   const context = useContext(FlowContext);
   if (!context) {
-    throw new Error('useFlowContext must be used within a FlowProvider');
+    throw new Error('useFlowContext必须在FlowProvider内使用');
   }
   return context;
 }
@@ -151,4 +151,4 @@ export function FlowProvider({ children }: FlowProviderProps) {
       {children}
     </FlowContext.Provider>
   );
-} 
+}

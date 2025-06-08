@@ -91,7 +91,7 @@ export function JsonOutputDialog({
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center justify-between">
-            JSON Output
+            JSON输出
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -100,7 +100,7 @@ export function JsonOutputDialog({
                 className="flex items-center gap-1.5"
               >
                 <Copy className="h-4 w-4" />
-                <span className="font-medium">{copySuccess ? 'Copied!' : 'Copy'}</span>
+                <span className="font-medium">{copySuccess ? '已复制!' : '复制'}</span>
               </Button>
               <Button
                 variant="outline"
@@ -109,7 +109,7 @@ export function JsonOutputDialog({
                 className="flex items-center gap-1.5"
               >
                 <Download className="h-4 w-4" />
-                <span className="font-medium">{downloadSuccess ? 'Downloaded!' : 'Download'}</span>
+                <span className="font-medium">{downloadSuccess ? '已下载!' : '下载'}</span>
               </Button>
             </div>
           </DialogTitle>

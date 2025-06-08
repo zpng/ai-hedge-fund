@@ -61,13 +61,13 @@ export const api = {
     })
     .then(response => {
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP错误! 状态码: ${response.status}`);
       }
             
       // Process the response as a stream of SSE events
       const reader = response.body?.getReader();
       if (!reader) {
-        throw new Error('Failed to get response reader');
+        throw new Error('获取响应读取器失败');
       }
       
       const decoder = new TextDecoder();
@@ -141,7 +141,7 @@ export const api = {
                       // Also update the output node
                       nodeContext.updateAgentNode('output', {
                         status: 'COMPLETE',
-                        message: 'Analysis complete'
+                        message: '分析完成'
                       });
                       break;
                     case 'error':

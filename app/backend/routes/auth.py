@@ -22,11 +22,11 @@ async def send_verification_code(
     """Send verification code to user's email."""
     try:
         code = await auth_service.send_verification_code(request.email)
-        return {"message": "Verification code sent successfully", "code": code}  # Remove code in production
+        return {"message": "验证码发送成功", "code": code}  # Remove code in production
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to send verification code: {str(e)}"
+            detail=f"发送验证码失败: {str(e)}"
         )
 
 
@@ -38,11 +38,11 @@ async def verify_email(
     """Verify user's email with verification code."""
     result = await auth_service.verify_email(request.email, request.code)
     if result:
-        return {"message": "Email verified successfully"}
+        return {"message": "邮箱验证成功"}
     else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired verification code"
+            detail="验证码无效或已过期"
         )
 
 
@@ -58,7 +58,7 @@ async def register_user(
     if not is_verified:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email not verified. Please verify your email before registration."
+            detail="邮箱未验证，请先验证邮箱后再注册"
         )
         
     user = await auth_service.register(
@@ -66,7 +66,7 @@ async def register_user(
         request.password,
         request.invite_code
     )
-    return {"message": "Registration successful.", "user_id": user.id}
+    return {"message": "注册成功", "user_id": user.id}
 
 
 @router.post("/login", response_model=LoginResponse)
@@ -135,7 +135,7 @@ async def generate_invite_codes(
     if len(active_codes) >= 5:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You already have 5 active invite codes. Maximum limit reached."
+            detail="您已有5个有效邀请码，已达到最大限制"
         )
     
     # Generate remaining codes
@@ -143,7 +143,7 @@ async def generate_invite_codes(
     new_codes = await redis_service._generate_invite_codes(current_user.id, codes_to_generate)
     
     return {
-        "message": f"Generated {codes_to_generate} new invite codes",
+        "message": f"已生成 {codes_to_generate} 个新邀请码",
         "new_codes": [code.code for code in new_codes]
     }
 
@@ -171,4 +171,4 @@ async def logout(
     """Logout user (invalidate token)."""
     # For JWT tokens, we can't really invalidate them server-side without a blacklist
     # In a production environment, you might want to implement a token blacklist in Redis
-    return {"message": "Logged out successfully"}
+    return {"message": "退出登录成功"}

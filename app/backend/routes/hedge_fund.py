@@ -35,7 +35,7 @@ async def run_hedge_fund(
         if not await auth_service.check_api_access(current_user):
             raise HTTPException(
                 status_code=403,
-                detail="Insufficient API calls remaining. Please upgrade your subscription."
+                detail="API调用次数不足，请升级您的订阅"
             )
         
         # Create the portfolio
@@ -97,7 +97,7 @@ async def run_hedge_fund(
                 result = run_task.result()
 
                 if not result or not result.get("messages"):
-                    yield ErrorEvent(message="Failed to generate hedge fund decisions").to_sse()
+                    yield ErrorEvent(message="生成对冲基金决策失败").to_sse()
                     return
 
                 # Send the final result
@@ -121,4 +121,4 @@ async def run_hedge_fund(
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An error occurred while processing the request: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"处理请求时发生错误: {str(e)}")

@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Registration failed');
+      throw new Error(error.detail || '注册失败');
     }
 
     return response.json();
@@ -104,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to send verification code');
+      throw new Error(error.detail || '发送验证码失败');
     }
 
     return response.json();
@@ -121,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Email verification failed');
+      throw new Error(error.detail || '邮箱验证失败');
     }
 
     return response.json();
@@ -153,7 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Login failed');
+      throw new Error(error.detail || '登录失败');
     }
 
     const data = await response.json();
@@ -211,7 +211,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth必须在AuthProvider内使用');
   }
   return context;
 }

@@ -180,10 +180,10 @@ export function AgentOutputDialog({
                         <button 
                           onClick={copyToClipboard}
                           className="flex items-center gap-1.5 text-xs p-1.5 rounded hover:bg-accent transition-colors text-muted-foreground"
-                          title="Copy to clipboard"
+                          title="复制到剪贴板"
                         >
                           <Copy className="h-3.5 w-3.5 " />
-                          <span className="font-medium">{copySuccess ? 'Copied!' : 'Copy'}</span>
+                          <span className="font-medium">{copySuccess ? '已复制!' : '复制'}</span>
                         </button>
                       )}
                     </div>
