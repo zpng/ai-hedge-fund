@@ -40,7 +40,7 @@ export function Login() {
       await login(email, password);
       toast({
         title: "登录成功",
-        description: "欢迎使用AI对冲基金系统",
+        description: "欢迎使用AI股票分析系统",
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '登录失败';
@@ -175,7 +175,7 @@ export function Login() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            AI对冲基金
+            AI股票分析
           </h2>
         </div>
 

@@ -95,7 +95,7 @@ class PaymentService:
                 "appid": self.appid,
                 "trade_order_id": trade_order_id,
                 "total_fee": amount,
-                "title": f"AI对冲基金{subscription_type}订阅",
+                "title": f"AI股票分析{subscription_type}订阅",
                 "time": int(time.time()),
                 "notify_url": notify_url,
                 "mchid": self.mchid,
