@@ -529,7 +529,7 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                         {(() => {
                           const date = new Date(profile.subscription_info.expires_at);
                           // 手动添加8小时偏移量
-                          const beijingTime = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+                          const beijingTime = new Date(date.getTime());
                           return beijingTime.toLocaleString('zh-CN', {
                             year: 'numeric',
                             month: 'long',

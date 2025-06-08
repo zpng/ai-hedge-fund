@@ -250,16 +250,27 @@ async def get_payment_records(
                         end_time = end_time.replace(tzinfo=timezone.utc)
                     is_active = current_time < end_time
             
+            # 转换为北京时间 (UTC+8)
+            from datetime import timezone, timedelta
+            beijing_tz = timezone(timedelta(hours=8))
+            
+            def to_beijing_time(dt):
+                if dt is None:
+                    return None
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                return dt.astimezone(beijing_tz).isoformat()
+            
             record_data = {
                 "id": record.id,
                 "trade_order_id": record.trade_order_id,
                 "amount": record.amount,
                 "subscription_type": record.subscription_type,
                 "status": record.status.value,
-                "created_at": record.created_at.isoformat(),
-                "paid_at": record.paid_at.isoformat() if record.paid_at else None,
-                "start_time": start_time.isoformat() if start_time else None,
-                "end_time": end_time.isoformat() if end_time else None,
+                "created_at": to_beijing_time(record.created_at),
+                "paid_at": to_beijing_time(record.paid_at),
+                "start_time": to_beijing_time(start_time),
+                "end_time": to_beijing_time(end_time),
                 "is_active": is_active,
                 "payment_method": record.payment_method
             }
