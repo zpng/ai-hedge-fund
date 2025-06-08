@@ -1,7 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, field_validator
 import hashlib
 import os
 
@@ -34,6 +34,28 @@ class User(BaseModel):
     new_user_gift_calls: int = 0  # API calls gifted for new user registration
     invite_gift_calls: int = 0  # API calls gifted from invite code
     
+    @field_validator('created_at', 'last_login', 'subscription_expires_at', mode='before')
+    @classmethod
+    def ensure_timezone_aware(cls, v):
+        """确保datetime字段都带有时区信息"""
+        if v is None:
+            return v
+        if isinstance(v, str):
+            # 如果是字符串，尝试解析
+            try:
+                dt = datetime.fromisoformat(v.replace('Z', '+00:00'))
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                return dt
+            except ValueError:
+                return v
+        elif isinstance(v, datetime):
+            # 如果是datetime对象但没有时区信息，添加UTC时区
+            if v.tzinfo is None:
+                return v.replace(tzinfo=timezone.utc)
+            return v
+        return v
+
     @staticmethod
     def hash_password(password: str) -> str:
         """Hash a password for storing."""
