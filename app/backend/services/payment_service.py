@@ -35,6 +35,22 @@ class PaymentService:
         self.query_url = os.getenv("XUNHU_QUERY_URL", "https://api.xunhupay.com/payment/query.html")
         self.type = "WAP"
         self.base_url = os.getenv("BASE_URL", "http://localhost:8080")
+        
+        # 记录配置信息（隐藏敏感信息）
+
+        # 验证必要配置
+        missing_configs = []
+        if not self.appid:
+            missing_configs.append("XUNHU_APPID")
+        if not self.app_secret:
+            missing_configs.append("XUNHU_APP_SECRET")
+        if not self.mchid:
+            missing_configs.append("XUNHU_MCHID")
+            
+        if missing_configs:
+            logger.error(f"缺少必要的环境变量配置: {', '.join(missing_configs)}")
+        else:
+            logger.info("所有必要的支付配置已设置完成")
 
     def _generate_hash(self, data: Dict[str, Any]) -> str:
         """根据虎皮椒API文档生成hash签名"""
@@ -42,13 +58,21 @@ class PaymentService:
         filtered_data = {}
         for key, value in data.items():
             if value is not None and value != '' and key != 'hash':
-                filtered_data[key] = str(value)
+                if key == 'total_fee':
+                    float_value = float(value)
+                    if float_value == int(float_value):
+                        filtered_data[key] = str(int(float_value))
+                    else:
+                        filtered_data[key] = f"{float_value:.2f}"
+                else:
+                    filtered_data[key] = str(value)
         
         # 按参数名ASCII码从小到大排序（字典序）
         sorted_keys = sorted(filtered_data.keys())
         
         # 拼接成key=value&key=value格式
         string_a = '&'.join([f"{key}={filtered_data[key]}" for key in sorted_keys])
+        print(f"string_a: {string_a}")
         
         # 拼接APPSECRET并进行MD5运算
         string_sign_temp = string_a + self.app_secret
@@ -96,6 +120,8 @@ class PaymentService:
             
             # 确定支付金额
             amount = await self._calculate_price(user.email, subscription_type, user_id)
+            # amount = 880
+
             
             # 生成订单号
             trade_order_id = self._generate_trade_order_id()
@@ -138,10 +164,39 @@ class PaymentService:
             # 创建请求对象
             pay_request = XunhuPayRequest(**params)
             
-            # 发送请求
-            response = requests.post(self.api_url, json=params)
-            pay_response = XunhuPayResponse(**response.json())
-            logger.info(f"支付请求响应: {pay_response.json()}")
+            # 发送请求前记录详细信息
+            logger.info(f"准备发送支付请求到: {self.api_url}")
+            logger.info(f"请求参数: {params}")
+            logger.info(f"配置信息 - appid: {self.appid}, mchid: {self.mchid}")
+            
+            try:
+                # 发送请求
+                logger.info("开始发送HTTP POST请求...")
+                response = requests.post(self.api_url, json=params, timeout=30)
+                logger.info(f"HTTP响应状态码: {response.status_code}")
+                logger.info(f"HTTP响应头: {dict(response.headers)}")
+                logger.info(f"HTTP响应内容: {response.text}")
+                
+                # 解析响应
+                response_json = response.json()
+                pay_response = XunhuPayResponse(**response_json)
+                logger.info(f"支付请求响应解析成功: {pay_response.json()}")
+                
+            except requests.exceptions.ConnectionError as e:
+                logger.error(f"连接错误详情: {str(e)}")
+                logger.error(f"请求URL: {self.api_url}")
+                logger.error(f"请求参数: {params}")
+                raise Exception(f"支付接口连接失败: {str(e)}")
+            except requests.exceptions.Timeout as e:
+                logger.error(f"请求超时: {str(e)}")
+                raise Exception(f"支付接口请求超时: {str(e)}")
+            except requests.exceptions.RequestException as e:
+                logger.error(f"请求异常: {str(e)}")
+                raise Exception(f"支付接口请求异常: {str(e)}")
+            except ValueError as e:
+                logger.error(f"响应JSON解析失败: {str(e)}")
+                logger.error(f"原始响应内容: {response.text if 'response' in locals() else 'N/A'}")
+                raise Exception(f"支付接口响应格式错误: {str(e)}")
             
             if pay_response.errcode == 0 and pay_response.url:
                 # 更新支付记录
@@ -185,13 +240,44 @@ class PaymentService:
             hash_value = self._generate_hash(params)
             params["hash"] = hash_value
             
-            logger.info(f"发送订单查询请求: {params}")
+            logger.info(f"准备发送订单查询请求到: {self.query_url}")
+            logger.info(f"查询请求参数: {params}")
             
-            # 发送请求到虎皮椒查询接口
-            response = requests.post(self.query_url, data=params, timeout=30)
-            response_data = response.json()
-            
-            logger.info(f"订单查询响应: {response_data}")
+            try:
+                # 发送请求到虎皮椒查询接口
+                logger.info("开始发送查询HTTP POST请求...")
+                response = requests.post(self.query_url, data=params, timeout=30)
+                logger.info(f"查询HTTP响应状态码: {response.status_code}")
+                logger.info(f"查询HTTP响应头: {dict(response.headers)}")
+                logger.info(f"查询HTTP响应内容: {response.text}")
+                
+                response_data = response.json()
+                logger.info(f"订单查询响应解析成功: {response_data}")
+                
+            except requests.exceptions.ConnectionError as e:
+                logger.error(f"查询连接错误详情: {str(e)}")
+                logger.error(f"查询请求URL: {self.query_url}")
+                logger.error(f"查询请求参数: {params}")
+                return {
+                    "errcode": 500,
+                    "errmsg": f"查询接口连接失败: {str(e)}",
+                    "hash": ""
+                }
+            except requests.exceptions.Timeout as e:
+                logger.error(f"查询请求超时: {str(e)}")
+                return {
+                    "errcode": 500,
+                    "errmsg": f"查询接口请求超时: {str(e)}",
+                    "hash": ""
+                }
+            except ValueError as e:
+                logger.error(f"查询响应JSON解析失败: {str(e)}")
+                logger.error(f"查询原始响应内容: {response.text if 'response' in locals() else 'N/A'}")
+                return {
+                    "errcode": 500,
+                    "errmsg": f"查询接口响应格式错误: {str(e)}",
+                    "hash": ""
+                }
             
             # 验证响应签名
             if "hash" in response_data:
