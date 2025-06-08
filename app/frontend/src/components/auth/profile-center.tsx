@@ -762,9 +762,6 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                           </div>
                           <div className="text-right">
                             <p className="font-semibold text-lg">¥{record.amount}</p>
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              已支付
-                            </span>
                           </div>
                         </div>
                         
