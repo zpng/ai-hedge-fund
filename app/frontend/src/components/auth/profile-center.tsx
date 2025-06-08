@@ -316,7 +316,25 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
       if (response.ok) {
         const result = await response.json();
         if (result.status === 'success' && result.data) {
-          setPaymentRecords(result.data.records || []);
+          // 只显示status=success的订单
+          const successRecords = (result.data.records || []).filter((record: PaymentRecord) => record.status === 'success');
+          
+          // 根据当前时间判断是否生效中
+          const currentTime = new Date();
+          const recordsWithStatus = successRecords.map((record: PaymentRecord) => {
+            let isActive = false;
+            if (record.start_time && record.end_time) {
+              const startTime = new Date(record.start_time);
+              const endTime = new Date(record.end_time);
+              isActive = currentTime >= startTime && currentTime <= endTime;
+            }
+            return {
+              ...record,
+              is_active: isActive
+            };
+          });
+          
+          setPaymentRecords(recordsWithStatus);
         } else {
           const errorMessage = result.message || '获取购买记录失败';
           toast({
@@ -744,15 +762,8 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                           </div>
                           <div className="text-right">
                             <p className="font-semibold text-lg">¥{record.amount}</p>
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              record.status === 'paid' 
-                                ? 'bg-green-100 text-green-800' 
-                                : record.status === 'pending'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}>
-                              {record.status === 'paid' ? '已支付' : 
-                               record.status === 'pending' ? '待支付' : '已取消'}
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              已支付
                             </span>
                           </div>
                         </div>
@@ -784,20 +795,18 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                           )}
                         </div>
                         
-                        {record.status === 'paid' && (
-                          <div className="mt-3 pt-3 border-t">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm text-gray-500">订阅状态:</span>
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                record.is_active 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : 'bg-gray-100 text-gray-800'
-                              }`}>
-                                {record.is_active ? '生效中' : '已过期'}
-                              </span>
-                            </div>
+                        <div className="mt-3 pt-3 border-t">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-500">订阅状态:</span>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              record.is_active 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {record.is_active ? '生效中' : '已失效'}
+                            </span>
                           </div>
-                        )}
+                        </div>
                       </div>
                     ))}
                   </div>
