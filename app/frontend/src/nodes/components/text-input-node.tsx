@@ -134,10 +134,10 @@ export function TextInputNode({
     abortControllerRef.current = api.runHedgeFund(
       {
         tickers: tickerList,
-        selected_agents: Array.from(selectedAgents), agent_models: agentModels,
-          agent_models: agentModels,
-          // Keep global model for backwards compatibility (will be removed later)
-          model_name: selectedModel?.model_name || undefined,
+        selected_agents: Array.from(selectedAgents),
+        agent_models: agentModels,
+        // Keep global model for backwards compatibility (will be removed later)
+        model_name: selectedModel?.model_name || undefined,
         model_provider: selectedModel?.provider as any || undefined,
         start_date: startDate,
         end_date: endDate,

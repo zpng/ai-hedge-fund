@@ -18,7 +18,7 @@ RUN pnpm install
 COPY . .
 
 # 构建应用，忽略TypeScript错误
-RUN pnpm run build || pnpm exec vite build --force
+RUN pnpm run build || pnpm exec vite build
 
 # 使用 nginx 作为生产环境
 FROM nginx:alpine
