@@ -5,7 +5,7 @@ import logging
 from app.backend.models.user import (
     LoginRequest, VerifyEmailRequest, RegisterRequest, SendVerificationRequest,
     LoginResponse, UserProfile, SubscriptionRequest, ApiUsageResponse, 
-    User, SubscriptionType
+    User, SubscriptionType, ForgotPasswordRequest, ResetPasswordRequest
 )
 from app.backend.services.auth_service import AuthService
 from app.backend.services.redis_service import RedisService
@@ -85,6 +85,52 @@ async def login_user(
     """Login with email and password."""
     result = await auth_service.login(request.email, request.password)
     return result
+
+
+@router.post("/forgot-password")
+async def forgot_password(
+    request: ForgotPasswordRequest,
+    auth_service: AuthService = Depends(get_auth_service)
+):
+    """Send password reset code to user's email."""
+    try:
+        code = await auth_service.send_password_reset_code(request.email)
+        return {"message": "如果该邮箱已注册，您将收到密码重置邮件", "code": code}  # Remove code in production
+    except HTTPException as e:
+        logger.warning(f"Forgot password failed for {request.email}: {e.detail}")
+        raise e
+    except Exception as e:
+        logger.error(f"System error when sending password reset code to {request.email}: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"发送密码重置邮件失败: {str(e)}"
+        )
+
+
+@router.post("/reset-password")
+async def reset_password(
+    request: ResetPasswordRequest,
+    auth_service: AuthService = Depends(get_auth_service)
+):
+    """Reset user's password with verification code."""
+    try:
+        success = await auth_service.reset_password(request.email, request.code, request.new_password)
+        if success:
+            return {"message": "密码重置成功，请使用新密码登录"}
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="密码重置失败"
+            )
+    except HTTPException as e:
+        logger.warning(f"Password reset failed for {request.email}: {e.detail}")
+        raise e
+    except Exception as e:
+        logger.error(f"System error when resetting password for {request.email}: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"密码重置失败: {str(e)}"
+        )
 
 
 async def get_current_user(

@@ -58,6 +58,29 @@ class EmailService:
         
         return await self.send_email(to_email, subject, html_content)
     
+    async def send_password_reset_email(self, to_email: str, verification_code: str) -> bool:
+        """Send password reset code email to user."""
+        if not self.api_key:
+            # For development, just log the code
+            logger.info(f"Password reset code for {to_email}: {verification_code}")
+            return True
+            
+        subject = "AI股票分析 - 密码重置验证码"
+        html_content = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>AI股票分析 - 密码重置</h2>
+            <p>您好，</p>
+            <p>您请求重置密码。您的验证码是: <strong style="font-size: 18px; color: #e74c3c;">{verification_code}</strong></p>
+            <p>此验证码将在10分钟后过期。</p>
+            <p>如果您没有请求重置密码，请忽略此邮件。您的账户仍然安全。</p>
+            <p>为了保护您的账户安全，请不要将此验证码分享给任何人。</p>
+            <p>谢谢！</p>
+            <p>AI股票分析团队</p>
+        </div>
+        """
+        
+        return await self.send_email(to_email, subject, html_content)
+    
     async def send_email(self, to_email: str, subject: str, html_content: str) -> bool:
         """Send email using Elastic Email API."""
         if not self.api_key:

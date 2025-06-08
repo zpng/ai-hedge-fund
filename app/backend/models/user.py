@@ -85,6 +85,16 @@ class SendVerificationRequest(BaseModel):
     email: EmailStr = Field(..., description="User's email address")
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr = Field(..., description="User's email address")
+
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr = Field(..., description="User's email address")
+    code: str = Field(..., description="Verification code")
+    new_password: str = Field(..., description="New password")
+
+
 class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"

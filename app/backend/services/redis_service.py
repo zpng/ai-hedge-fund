@@ -123,6 +123,73 @@ class RedisService:
         
         return True
     
+    # Password reset code management
+    async def create_password_reset_code(self, email: str) -> str:
+        """Create a verification code specifically for password reset."""
+        code = self._generate_verification_code()
+        verification = VerificationCode(
+            email=email,
+            code=code,
+            created_at=datetime.now(),
+            expires_at=datetime.now() + timedelta(minutes=10)  # 10 minutes for password reset
+        )
+        
+        # Store password reset code (expires in 10 minutes)
+        key = f"password_reset:{email}"
+        self.redis_client.setex(key, 600, verification.model_dump_json())
+        
+        return code
+    
+    async def verify_password_reset_code(self, email: str, code: str) -> bool:
+        """Verify password reset code."""
+        key = f"password_reset:{email}"
+        verification_data = self.redis_client.get(key)
+        
+        if not verification_data:
+            return False
+        
+        verification = VerificationCode.model_validate_json(verification_data)
+        
+        if verification.is_used or verification.expires_at < datetime.now():
+            return False
+        
+        if verification.code != code:
+            return False
+        
+        return True
+    
+    async def use_password_reset_code(self, email: str, code: str) -> bool:
+        """Mark password reset code as used."""
+        key = f"password_reset:{email}"
+        verification_data = self.redis_client.get(key)
+        
+        if not verification_data:
+            return False
+        
+        verification = VerificationCode.model_validate_json(verification_data)
+        
+        if verification.is_used or verification.expires_at < datetime.now():
+            return False
+        
+        if verification.code != code:
+            return False
+        
+        # Mark as used
+        verification.is_used = True
+        self.redis_client.setex(key, 300, verification.model_dump_json())
+        
+        return True
+    
+    async def update_user_password(self, email: str, new_password: str) -> bool:
+        """Update user's password."""
+        user = await self.get_user_by_email(email)
+        if not user:
+            return False
+        
+        user.password_hash = User.hash_password(new_password)
+        await self.update_user(user)
+        return True
+    
     # Invite code management
     async def _generate_invite_codes(self, user_id: str, count: int) -> List[InviteCode]:
         invite_codes = []

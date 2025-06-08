@@ -5,10 +5,10 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Mail, Lock, Shield, Sparkles, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Shield, Sparkles, Eye, EyeOff, X } from "lucide-react";
 
 export function Login() {
-  const { register, login, sendVerificationCode, verifyEmail } = useAuth();
+  const { register, login, sendVerificationCode, verifyEmail, sendPasswordResetCode, resetPassword } = useAuth();
   const { toast } = useToast();
 
   const [email, setEmail] = React.useState("");
@@ -26,6 +26,16 @@ export function Login() {
   const [emailVerified, setEmailVerified] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  const [showForgotPassword, setShowForgotPassword] = React.useState(false);
+  const [resetEmail, setResetEmail] = React.useState("");
+  const [resetCode, setResetCode] = React.useState("");
+  const [newPassword, setNewPassword] = React.useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = React.useState("");
+  const [resetStep, setResetStep] = React.useState<"email" | "code" | "password">("email");
+  const [isSendingResetCode, setIsSendingResetCode] = React.useState(false);
+  const [isResettingPassword, setIsResettingPassword] = React.useState(false);
+  const [showNewPassword, setShowNewPassword] = React.useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = React.useState(false);
 
   // 登录处理
   const handleLogin = async (e: React.FormEvent) => {
@@ -175,6 +185,105 @@ export function Login() {
     }
   };
 
+  // 发送密码重置验证码
+  const handleSendResetCode = async () => {
+    if (!resetEmail.trim()) {
+      toast({
+        variant: "destructive",
+        title: "输入错误",
+        description: "请输入邮箱地址",
+      });
+      return;
+    }
+
+    setIsSendingResetCode(true);
+    setError('');
+
+    try {
+      await sendPasswordResetCode(resetEmail);
+      setResetStep('code');
+      toast({
+        title: "发送成功",
+        description: "密码重置验证码已发送到您的邮箱",
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '发送验证码失败';
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "发送失败",
+        description: errorMessage,
+      });
+    } finally {
+      setIsSendingResetCode(false);
+    }
+  };
+
+  // 验证重置验证码并设置新密码
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (resetStep === 'code') {
+      if (!resetCode.trim()) {
+        toast({
+          variant: "destructive",
+          title: "输入错误",
+          description: "请输入验证码",
+        });
+        return;
+      }
+      setResetStep('password');
+      return;
+    }
+
+    if (!newPassword.trim()) {
+      toast({
+        variant: "destructive",
+        title: "输入错误",
+        description: "请输入新密码",
+      });
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      toast({
+        variant: "destructive",
+        title: "输入错误",
+        description: "两次输入的密码不一致",
+      });
+      return;
+    }
+
+    setIsResettingPassword(true);
+    setError('');
+
+    try {
+      await resetPassword(resetEmail, resetCode, newPassword);
+      toast({
+        title: "重置成功",
+        description: "密码重置成功，请使用新密码登录",
+      });
+      // 重置状态
+      setShowForgotPassword(false);
+      setResetStep('email');
+      setResetEmail('');
+      setResetCode('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+      setActiveTab('login');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '密码重置失败';
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "重置失败",
+        description: errorMessage,
+      });
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* 动态渐变背景 */}
@@ -265,6 +374,16 @@ export function Login() {
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                  >
+                    忘记密码？
+                  </button>
                 </div>
 
                 {error && activeTab === 'login' && (
@@ -473,6 +592,159 @@ export function Login() {
           </TabsContent>
         </Tabs>
 
+        {/* 忘记密码弹窗 */}
+        {showForgotPassword && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <Card className="bg-white/90 backdrop-blur-xl border border-white/20 shadow-2xl p-8 w-full max-w-md mx-4">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-800">重置密码</h2>
+                <button
+                  onClick={() => {
+                    setShowForgotPassword(false);
+                    setResetStep('email');
+                    setResetEmail('');
+                    setResetCode('');
+                    setNewPassword('');
+                    setConfirmNewPassword('');
+                    setError('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <form onSubmit={resetStep === 'email' ? (e) => { e.preventDefault(); handleSendResetCode(); } : handleResetPassword} className="space-y-6">
+                {resetStep === 'email' && (
+                  <>
+                    <div className="space-y-2">
+                      <label htmlFor="reset-email" className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-blue-600" />
+                        邮箱地址
+                      </label>
+                      <div className="relative">
+                        <Input
+                          id="reset-email"
+                          type="email"
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                          placeholder="请输入您的邮箱地址"
+                          className="pl-10 h-12 bg-white/50 border-gray-200/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 rounded-xl"
+                          required
+                        />
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {resetStep === 'code' && (
+                  <>
+                    <div className="space-y-2">
+                      <label htmlFor="reset-code" className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <Shield className="w-4 h-4 text-blue-600" />
+                        验证码
+                      </label>
+                      <div className="relative">
+                        <Input
+                          id="reset-code"
+                          type="text"
+                          value={resetCode}
+                          onChange={(e) => setResetCode(e.target.value)}
+                          placeholder="请输入验证码"
+                          className="pl-10 h-12 bg-white/50 border-gray-200/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 rounded-xl"
+                          required
+                        />
+                        <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {resetStep === 'password' && (
+                  <>
+                    <div className="space-y-2">
+                      <label htmlFor="new-password" className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <Lock className="w-4 h-4 text-blue-600" />
+                        新密码
+                      </label>
+                      <div className="relative">
+                        <Input
+                          id="new-password"
+                          type={showNewPassword ? "text" : "password"}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="请输入新密码"
+                          className="pl-10 pr-10 h-12 bg-white/50 border-gray-200/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 rounded-xl"
+                          required
+                        />
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="confirm-new-password" className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <Lock className="w-4 h-4 text-blue-600" />
+                        确认新密码
+                      </label>
+                      <div className="relative">
+                        <Input
+                          id="confirm-new-password"
+                          type={showNewPassword ? "text" : "password"}
+                          value={confirmNewPassword}
+                          onChange={(e) => setConfirmNewPassword(e.target.value)}
+                          placeholder="请再次输入新密码"
+                          className="pl-10 h-12 bg-white/50 border-gray-200/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 rounded-xl"
+                          required
+                        />
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full" />
+                    {error}
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+                  disabled={isSendingResetCode || isResettingPassword}
+                >
+                  {resetStep === 'email' && isSendingResetCode ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      发送中...
+                    </div>
+                  ) : resetStep === 'email' ? (
+                    '发送验证码'
+                  ) : resetStep === 'code' ? (
+                    '下一步'
+                  ) : isResettingPassword ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      重置中...
+                    </div>
+                  ) : (
+                    '重置密码'
+                  )}
+                </Button>
+              </form>
+            </Card>
+          </div>
+        )}
+
         {/* 底部提示 */}
         <div className="text-center mt-8">
           <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20 shadow-lg">
@@ -486,3 +758,5 @@ export function Login() {
     </div>
   );
 }
+
+export default Login;

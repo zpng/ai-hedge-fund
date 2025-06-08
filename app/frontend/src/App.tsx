@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Flow } from './components/Flow';
 import { Layout } from './components/Layout';
-import { Login } from './components/auth/login';
+import Login from './components/auth/login';
 import { UserProfile } from './components/auth/user-profile';
 import { AuthProvider, useAuth } from './contexts/auth-context';
 import { Button } from './components/ui/button';

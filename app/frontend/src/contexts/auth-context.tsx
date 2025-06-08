@@ -26,6 +26,8 @@ interface AuthContextType {
   verifyEmail: (email: string, code: string) => Promise<boolean>;
   refreshUser: () => Promise<void>;
   isEmailVerified: (email: string) => Promise<boolean>;
+  sendPasswordResetCode: (email: string) => Promise<void>;
+  resetPassword: (email: string, code: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -187,6 +189,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const sendPasswordResetCode = async (email: string) => {
+    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || '发送密码重置邮件失败');
+    }
+
+    return response.json();
+  };
+
+  const resetPassword = async (email: string, code: string, newPassword: string) => {
+    const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, code, new_password: newPassword }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || '密码重置失败');
+    }
+
+    return response.json();
+  };
+
   const value = {
     user,
     token,
@@ -199,6 +235,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     verifyEmail,
     refreshUser,
     isEmailVerified,
+    sendPasswordResetCode,
+    resetPassword,
   };
 
   return (

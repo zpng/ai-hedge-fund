@@ -178,6 +178,87 @@ class AuthService:
         """Check if user has API access and consume one call if they do."""
         return await self.redis_service.consume_api_call(user.id)
     
+    async def send_password_reset_code(self, email: str) -> str:
+        """Send password reset code to user's email."""
+        try:
+            # Check if user exists
+            user = await self.redis_service.get_user_by_email(email)
+            if not user:
+                # For security, don't reveal if email exists or not
+                self.logger.warning(f"Password reset requested for non-existent email: {email}")
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="如果该邮箱已注册，您将收到密码重置邮件"
+                )
+            
+            # Generate password reset code
+            code = await self.redis_service.create_password_reset_code(email)
+            
+            # Send password reset email
+            email_sent = await self.email_service.send_password_reset_email(email, code)
+            if not email_sent:
+                self.logger.error(f"Failed to send password reset email to {email}")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="邮件发送失败，请检查邮箱地址是否正确或稍后重试"
+                )
+            
+            self.logger.info(f"Password reset code sent to: {email}")
+            return code
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            self.logger.error(f"Unexpected error in send_password_reset_code for {email}: {str(e)}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="系统错误，请稍后重试"
+            )
+    
+    async def reset_password(self, email: str, code: str, new_password: str) -> bool:
+        """Reset user's password with verification code."""
+        try:
+            # Check if user exists
+            user = await self.redis_service.get_user_by_email(email)
+            if not user:
+                self.logger.warning(f"Password reset attempted for non-existent email: {email}")
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="用户不存在"
+                )
+            
+            # Verify password reset code
+            if not await self.redis_service.verify_password_reset_code(email, code):
+                self.logger.warning(f"Invalid password reset code for {email}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="验证码无效或已过期"
+                )
+            
+            # Update password
+            success = await self.redis_service.update_user_password(email, new_password)
+            if not success:
+                self.logger.error(f"Failed to update password for {email}")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="密码更新失败，请稍后重试"
+                )
+            
+            # Mark reset code as used
+            await self.redis_service.use_password_reset_code(email, code)
+            
+            self.logger.info(f"Password reset successful for: {email}")
+            return True
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            self.logger.error(f"Unexpected error in reset_password for {email}: {str(e)}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="系统错误，请稍后重试"
+            )
+    
     def _create_access_token(self, user_id: str, expires_delta: Optional[timedelta] = None) -> str:
         """Create JWT access token."""
         if expires_delta:
