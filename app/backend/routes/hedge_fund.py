@@ -77,6 +77,7 @@ async def run_hedge_fund(
                         end_date=request.end_date,
                         model_name=request.model_name,
                         model_provider=model_provider,
+                        request=request,  # Pass the full request for agent-specific model access
                     )
                 )
                 # Send initial message

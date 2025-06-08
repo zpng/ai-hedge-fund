@@ -9,15 +9,15 @@ ENV PYTHONUNBUFFERED=1
 # 安装Poetry
 RUN pip install poetry==1.7.1
 
-# 复制依赖文件
-COPY pyproject.toml poetry.lock* /app/
+# Copy only dependency files first for better caching
+COPY ../pyproject.toml ../poetry.lock* /app/
 
 # 配置Poetry并安装依赖
 RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi --only=main
 
-# 复制源代码
-COPY . /app/
+# Copy rest of the source code
+COPY ../ /app/
 
 # 暴露端口
 EXPOSE 8080

@@ -11,26 +11,25 @@ from src.utils.progress import progress
 logger = logging.getLogger("ai-hedge-fund")
 
 T = TypeVar("T", bound=BaseModel)
+from src.graph.state import AgentState
 
 
 def call_llm(
-    prompt: Any,
-    model_name: str,
-    model_provider: str,
-    pydantic_model: Type[T],
-    agent_name: Optional[str] = None,
+    prompt: any,
+    pydantic_model: type[BaseModel],
+    agent_name: str | None = None,
+    state: AgentState | None = None,
     max_retries: int = 3,
     default_factory=None,
-) -> T:
+) -> BaseModel:
     """
     Makes an LLM call with retry logic, handling both JSON supported and non-JSON supported models.
 
     Args:
         prompt: The prompt to send to the LLM
-        model_name: Name of the model to use
-        model_provider: Provider of the model
         pydantic_model: The Pydantic model class to structure the output
-        agent_name: Optional name of the agent for progress updates
+        agent_name: Optional name of the agent for progress updates and model config extraction
+        state: Optional state object to extract agent-specific model configuration
         max_retries: Maximum number of retries (default: 3)
         default_factory: Optional factory function to create default response on failure
 
@@ -38,11 +37,21 @@ def call_llm(
         An instance of the specified Pydantic model
     """
 
+    # Extract model configuration if state is provided and agent_name is available
+    if state and agent_name:
+        model_name, model_provider = get_agent_model_config(state, agent_name)
+
+    # Fallback to defaults if still not provided
+    if not model_name:
+        model_name = "gpt-4o"
+    if not model_provider:
+        model_provider = "OPENAI"
+
     logger.info(f"开始LLM调用: model_name={model_name}, model_provider={model_provider}")
-    
+
     model_info = get_model_info(model_name, model_provider)
     logger.info(f"获取到模型信息: {model_info}")
-    
+
     try:
         llm = get_model(model_name, model_provider)
         logger.info(f"成功初始化LLM模型实例")
@@ -84,7 +93,7 @@ def call_llm(
         except Exception as e:
             error_msg = f"LLM调用错误 (尝试 {attempt + 1}/{max_retries}): {str(e)}"
             logger.error(f"{error_msg}\n详细错误信息: {json.dumps({'model_name': model_name, 'model_provider': model_provider, 'attempt': attempt + 1, 'error': str(e)})}")
-            
+
             if agent_name:
                 progress.update_status(agent_name, None, f"Error - retry {attempt + 1}/{max_retries}")
 
@@ -100,7 +109,7 @@ def call_llm(
     return create_default_response(pydantic_model)
 
 
-def create_default_response(model_class: Type[T]) -> T:
+def create_default_response(model_class: type[BaseModel]) -> BaseModel:
     """Creates a safe default response based on the model's fields."""
     default_values = {}
     for field_name, field in model_class.model_fields.items():
@@ -122,7 +131,7 @@ def create_default_response(model_class: Type[T]) -> T:
     return model_class(**default_values)
 
 
-def extract_json_from_response(content: str) -> Optional[dict]:
+def extract_json_from_response(content: str) -> dict | None:
     """Extracts JSON from markdown-formatted response."""
     try:
         logger.info(f"尝试从响应中提取JSON")
@@ -142,3 +151,32 @@ def extract_json_from_response(content: str) -> Optional[dict]:
     except Exception as e:
         logger.error(f"从响应中提取JSON时出错: {str(e)}\n响应内容: {content[:200]}...")
     return None
+
+
+def get_agent_model_config(state, agent_name):
+    """
+    Get model configuration for a specific agent from the state.
+    Falls back to global model configuration if agent-specific config is not available.
+    """
+    request = state.get("metadata", {}).get("request")
+
+    if agent_name == 'portfolio_manager':
+        # Get the model and provider from state metadata
+        model_name = state.get("metadata", {}).get("model_name", "gpt-4o")
+        model_provider = state.get("metadata", {}).get("model_provider", "OPENAI")
+        return model_name, model_provider
+
+    if request and hasattr(request, 'get_agent_model_config'):
+        # Get agent-specific model configuration
+        model_name, model_provider = request.get_agent_model_config(agent_name)
+        return model_name, model_provider.value if hasattr(model_provider, 'value') else str(model_provider)
+
+    # Fall back to global configuration
+    model_name = state.get("metadata", {}).get("model_name", "gpt-4o")
+    model_provider = state.get("metadata", {}).get("model_provider", "OPENAI")
+
+    # Convert enum to string if necessary
+    if hasattr(model_provider, 'value'):
+        model_provider = model_provider.value
+
+    return model_name, model_provider
