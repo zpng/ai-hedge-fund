@@ -453,11 +453,11 @@ export function Login() {
                 <Button
                   type="submit"
                   className={`w-full h-12 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] ${
-                    emailVerified 
+                    emailVerified && email.trim() && password.trim() && confirmPassword.trim() && password === confirmPassword
                       ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white' 
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
-                  disabled={isLoading || !emailVerified}
+                  disabled={isLoading || !emailVerified || !email.trim() || !password.trim() || !confirmPassword.trim() || password !== confirmPassword}
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">
@@ -465,7 +465,7 @@ export function Login() {
                       注册中...
                     </div>
                   ) : (
-                    '创建账户'
+                    '注册'
                   )}
                 </Button>
               </form>
