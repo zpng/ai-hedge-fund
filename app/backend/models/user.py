@@ -121,3 +121,7 @@ class ApiUsageResponse(BaseModel):
     invite_gift_calls: int
     subscription_type: SubscriptionType
     subscription_expires_at: Optional[datetime]
+
+
+class ClearUserDataRequest(BaseModel):
+    email: EmailStr = Field(..., description="要清空数据的用户邮箱")

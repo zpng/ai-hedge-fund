@@ -5,7 +5,7 @@ import logging
 from app.backend.models.user import (
     LoginRequest, VerifyEmailRequest, RegisterRequest, SendVerificationRequest,
     LoginResponse, UserProfile, SubscriptionRequest, ApiUsageResponse, 
-    User, SubscriptionType, ForgotPasswordRequest, ResetPasswordRequest
+    User, SubscriptionType, ForgotPasswordRequest, ResetPasswordRequest, ClearUserDataRequest
 )
 from app.backend.services.auth_service import AuthService
 from app.backend.services.redis_service import RedisService
@@ -230,3 +230,34 @@ async def logout(
     # For JWT tokens, we can't really invalidate them server-side without a blacklist
     # In a production environment, you might want to implement a token blacklist in Redis
     return {"message": "退出登录成功"}
+
+
+@router.post("/clear-user-data")
+async def clear_user_data(
+    request: ClearUserDataRequest,
+    current_user: User = Depends(get_current_user),
+    redis_service: RedisService = Depends(get_redis_service)
+):
+    """清空指定邮箱用户的所有数据（仅限特定管理员账号）"""
+    # 检查当前用户是否为指定的管理员邮箱
+    if current_user.email != "1014346275@qq.com":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="无权限执行此操作"
+        )
+    
+    try:
+        success = await redis_service.clear_user_data_by_email(request.email)
+        if success:
+            return {"message": f"用户 {request.email} 的所有数据已清空"}
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="用户不存在"
+            )
+    except Exception as e:
+        logger.error(f"清空用户数据失败: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="清空用户数据失败"
+        )

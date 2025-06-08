@@ -49,6 +49,8 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
   const [error, setError] = useState('');
   const [isGeneratingCodes, setIsGeneratingCodes] = useState(false);
   const [activeSection, setActiveSection] = useState('account');
+  const [clearEmail, setClearEmail] = useState('');
+  const [isClearingData, setIsClearingData] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -126,6 +128,59 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
       });
     } finally {
       setIsGeneratingCodes(false);
+    }
+  };
+
+  const clearUserData = async () => {
+    if (!token || !clearEmail.trim()) {
+      toast({
+        variant: "destructive",
+        title: "输入错误",
+        description: "请输入要清空数据的邮箱地址",
+      });
+      return;
+    }
+
+    // 确认操作
+    if (!window.confirm(`确定要清空邮箱 ${clearEmail} 的所有数据吗？此操作不可撤销！`)) {
+      return;
+    }
+
+    setIsClearingData(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/clear-user-data`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: clearEmail }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setClearEmail('');
+        toast({
+          title: "清空成功",
+          description: result.message,
+        });
+      } else {
+        const error = await response.json();
+        const errorMessage = error.detail || '清空用户数据失败';
+        toast({
+          variant: "destructive",
+          title: "清空失败",
+          description: errorMessage,
+        });
+      }
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "网络错误",
+        description: "请检查网络连接后重试",
+      });
+    } finally {
+      setIsClearingData(false);
     }
   };
 
@@ -393,6 +448,35 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                     </div>
                   )}
                 </div>
+                
+                {/* 管理员功能：清空用户数据 */}
+                {profile.user.email === '1014346275@qq.com' && (
+                  <div className="mt-8 pt-6 border-t border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">管理员功能</h3>
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <h4 className="text-md font-medium text-red-800 mb-3">清空用户数据</h4>
+                      <p className="text-sm text-red-600 mb-4">
+                        ⚠️ 警告：此操作将永久删除指定用户的所有数据，包括账户信息、邀请码、会话等，操作不可撤销！
+                      </p>
+                      <div className="flex gap-3">
+                        <input
+                          type="email"
+                          placeholder="输入要清空数据的邮箱地址"
+                          value={clearEmail}
+                          onChange={(e) => setClearEmail(e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        />
+                        <Button
+                          onClick={clearUserData}
+                          disabled={isClearingData || !clearEmail.trim()}
+                          variant="destructive"
+                        >
+                          {isClearingData ? '清空中...' : '清空数据'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </Card>
             </div>
           )}

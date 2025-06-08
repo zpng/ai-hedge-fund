@@ -374,3 +374,46 @@ class RedisService:
     
     def _generate_session_token(self) -> str:
         return ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+    
+    async def clear_user_data_by_email(self, email: str) -> bool:
+        """清空指定邮箱用户的所有数据"""
+        try:
+            # 获取用户信息
+            user = await self.get_user_by_email(email)
+            if not user:
+                return False
+            
+            user_id = user.id
+            
+            # 删除用户主数据
+            self.redis_client.delete(f"user:{user_id}")
+            
+            # 删除邮箱索引
+            self.redis_client.delete(f"email:{email}")
+            
+            # 删除邮箱验证状态
+            self.redis_client.delete(f"verified_email:{email}")
+            
+            # 删除验证码
+            self.redis_client.delete(f"verification:{email}")
+            
+            # 删除密码重置码
+            self.redis_client.delete(f"password_reset:{email}")
+            
+            # 删除用户的邀请码
+            invite_codes = self.redis_client.smembers(f"user_invites:{user_id}")
+            for code in invite_codes:
+                self.redis_client.delete(f"invite:{code}")
+            self.redis_client.delete(f"user_invites:{user_id}")
+            
+            # 删除用户的会话
+            session_keys = self.redis_client.keys("session:*")
+            for session_key in session_keys:
+                stored_user_id = self.redis_client.get(session_key)
+                if stored_user_id == user_id:
+                    self.redis_client.delete(session_key)
+            
+            return True
+        except Exception as e:
+            print(f"清空用户数据失败: {str(e)}")
+            return False
