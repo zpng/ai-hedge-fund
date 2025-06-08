@@ -338,21 +338,17 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
                 </div>
               </div>
               {profile.subscription_info.type === 'trial' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">剩余API调用次数</label>
-                    <div className="mt-1 text-sm text-gray-900">
-                      {profile.subscription_info.api_calls_remaining}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">赠送次数详情</label>
-                    <div className="mt-1 space-y-1 text-sm text-gray-600">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">剩余API调用次数</label>
+                  <div className="mt-1 text-sm text-gray-900 relative group">
+                    <span className="cursor-help">{profile.subscription_info.api_calls_remaining}</span>
+                    <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-2 px-3 whitespace-nowrap z-10">
                       <div>新用户赠送: {profile.subscription_info.new_user_gift_calls} 次</div>
                       <div>邀请码赠送: {profile.subscription_info.invite_gift_calls} 次</div>
+                      <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
                     </div>
                   </div>
-                </>
+                </div>
               )}
             </div>
           </Card>
