@@ -226,29 +226,31 @@ async def get_payment_records(
         # 转换为前端需要的格式
         records_data = []
         for record in payment_records:
-            # 计算订阅开始和结束时间
-            start_time = record.paid_at if record.paid_at else record.created_at
-            end_time = None
+            # 计算订阅开始和结束时间（在UTC时区进行计算）
+            start_time_utc = record.paid_at if record.paid_at else record.created_at
+            end_time_utc = None
             is_active = False
             
             if record.status.value == "success" and record.subscription_type:
-                # 根据订阅类型计算结束时间
+                # 确保start_time_utc有时区信息
+                from datetime import timezone
+                if start_time_utc.tzinfo is None:
+                    start_time_utc = start_time_utc.replace(tzinfo=timezone.utc)
+                
+                # 根据订阅类型计算结束时间（在UTC时区）
                 subscription_type_str = str(record.subscription_type).lower()
                 if subscription_type_str == "monthly":
                     from datetime import timedelta
-                    end_time = start_time + timedelta(days=30)
+                    end_time_utc = start_time_utc + timedelta(days=30)
                 elif subscription_type_str == "yearly":
                     from datetime import timedelta
-                    end_time = start_time + timedelta(days=365)
+                    end_time_utc = start_time_utc + timedelta(days=365)
                 
                 # 判断是否仍在生效中
-                if end_time:
+                if end_time_utc:
                     from datetime import datetime, timezone
                     current_time = datetime.now(timezone.utc)
-                    # 确保end_time也有时区信息
-                    if end_time.tzinfo is None:
-                        end_time = end_time.replace(tzinfo=timezone.utc)
-                    is_active = current_time < end_time
+                    is_active = current_time < end_time_utc
             
             # 转换为北京时间 (UTC+8)
             from datetime import timezone, timedelta
@@ -269,8 +271,8 @@ async def get_payment_records(
                 "status": record.status.value,
                 "created_at": to_beijing_time(record.created_at),
                 "paid_at": to_beijing_time(record.paid_at),
-                "start_time": to_beijing_time(start_time),
-                "end_time": to_beijing_time(end_time),
+                "start_time": to_beijing_time(start_time_utc),
+                "end_time": to_beijing_time(end_time_utc),
                 "is_active": is_active,
                 "payment_method": record.payment_method
             }

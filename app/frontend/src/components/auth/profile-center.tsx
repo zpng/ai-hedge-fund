@@ -765,14 +765,7 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                           </div>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <span className="text-gray-500">购买时间:</span>
-                            <p className="font-medium">
-                              {new Date(record.created_at).toLocaleString('zh-CN')}
-                            </p>
-                          </div>
-                          
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                           {record.start_time && (
                             <div>
                               <span className="text-gray-500">开始时间:</span>
