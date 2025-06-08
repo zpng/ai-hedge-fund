@@ -18,7 +18,7 @@ class RedisService:
         
         # 计算API调用次数赠送
         new_user_gift = 3  # 新用户默认赠送3次
-        invite_gift = 5 if invited_by else 0  # 邀请码赠送5次
+        invite_gift = 4 if invited_by else 0  # 邀请码赠送4次
         total_calls = new_user_gift + invite_gift
         
         user = User(
@@ -77,6 +77,32 @@ class RedisService:
             verification = VerificationCode.model_validate_json(verification_data)
             verification.is_used = True
             self.redis_client.setex(verification_key, 300, verification.model_dump_json())
+    
+    async def migrate_user_gift_calls(self) -> None:
+        """迁移现有用户的gift_calls字段"""
+        # 获取所有用户
+        user_keys = self.redis_client.keys("user:*")
+        for user_key in user_keys:
+            user_data = self.redis_client.hget(user_key, "data")
+            if user_data:
+                try:
+                    user = User.model_validate_json(user_data)
+                    
+                    # 如果用户的gift_calls字段都为0，但有invited_by或api_calls_remaining > 0，则需要修复
+                    if user.new_user_gift_calls == 0 and user.invite_gift_calls == 0:
+                        # 为所有用户设置新用户赠送
+                        user.new_user_gift_calls = 3
+                        
+                        # 如果用户是通过邀请码注册的，设置邀请赠送
+                        if user.invited_by:
+                            user.invite_gift_calls = 5
+                        
+                        # 更新用户数据
+                        await self.update_user(user)
+                except Exception as e:
+                    # 跳过无效的用户数据，避免阻塞整个迁移过程
+                    print(f"跳过无效用户数据 {user_key}: {str(e)}")
+                    continue
     
     async def get_user_by_id(self, user_id: str) -> Optional[User]:
         user_data = self.redis_client.hget(f"user:{user_id}", "data")
