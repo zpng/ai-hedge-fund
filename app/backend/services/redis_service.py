@@ -230,19 +230,20 @@ class RedisService:
             if invite_data:
                 invite_code = InviteCode.model_validate_json(invite_data)
                 
+                # Convert to dict and add email if used
+                invite_code_dict = invite_code.model_dump()
+                
                 # If the invite code was used, get the user's email
                 if invite_code.used_by:
                     used_by_user = await self.get_user_by_id(invite_code.used_by)
                     if used_by_user:
-                        # Add email to the invite code object
-                        invite_code_dict = invite_code.model_dump()
                         invite_code_dict['used_by_email'] = used_by_user.email
-                        # Create a new InviteCode with the additional field
-                        invite_codes.append(invite_code_dict)
                     else:
-                        invite_codes.append(invite_code)
+                        invite_code_dict['used_by_email'] = None
                 else:
-                    invite_codes.append(invite_code)
+                    invite_code_dict['used_by_email'] = None
+                
+                invite_codes.append(invite_code_dict)
         
         return invite_codes
     
