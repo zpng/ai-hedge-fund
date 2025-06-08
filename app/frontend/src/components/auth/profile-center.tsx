@@ -49,9 +49,6 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
   const [activeSection, setActiveSection] = useState('account');
   const navigate = useNavigate();
   const { toast } = useToast();
-  const contentRef = useRef<HTMLDivElement>(null);
-  const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-  const isScrollingRef = useRef(false);
 
   const fetchProfile = async () => {
     if (!token) return;
@@ -225,55 +222,9 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
     setTimeout(pollPaymentStatus, pollInterval);
   };
 
-  // 滚动监听
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!contentRef.current || isScrollingRef.current) return;
-
-      const scrollTop = contentRef.current.scrollTop;
-      const sections = Object.keys(sectionRefs.current);
-      
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const section = sections[i];
-        const element = sectionRefs.current[section];
-        if (element) {
-          const offsetTop = element.offsetTop - 100; // 偏移量
-          if (scrollTop >= offsetTop) {
-            setActiveSection(section);
-            break;
-          }
-        }
-      }
-    };
-
-    const contentElement = contentRef.current;
-    if (contentElement) {
-      contentElement.addEventListener('scroll', handleScroll);
-      return () => contentElement.removeEventListener('scroll', handleScroll);
-    }
-  }, []);
-
-  // 点击导航项滚动到对应区域
-  const scrollToSection = (sectionId: string) => {
-    const element = sectionRefs.current[sectionId];
-    if (element && contentRef.current) {
-      // 立即设置activeSection状态
-      setActiveSection(sectionId);
-      
-      // 设置滚动标志，防止滚动监听干扰
-      isScrollingRef.current = true;
-      
-      const offsetTop = element.offsetTop - 80;
-      contentRef.current.scrollTo({
-        top: offsetTop,
-        behavior: 'smooth'
-      });
-      
-      // 滚动完成后重置标志
-      setTimeout(() => {
-        isScrollingRef.current = false;
-      }, 1000);
-    }
+  // 点击导航项切换内容区域
+  const handleSectionChange = (sectionId: string) => {
+    setActiveSection(sectionId);
   };
 
   useEffect(() => {
@@ -371,7 +322,7 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
               return (
                 <li key={item.id}>
                   <button
-                    onClick={() => scrollToSection(item.id)}
+                    onClick={() => handleSectionChange(item.id)}
                     className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                       isActive
                         ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
@@ -409,172 +360,163 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
 
       {/* 右侧内容区域 */}
       <div className="flex-1 overflow-hidden">
-        <div 
-          ref={contentRef}
-          className="h-full overflow-y-auto p-8 space-y-8"
-        >
+        <div className="h-full overflow-y-auto p-8">
           {error && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+            <div className="p-4 bg-red-50 border border-red-200 rounded-md mb-6">
               <div className="text-red-600">{error}</div>
             </div>
           )}
 
           {/* 账户信息 */}
-          <section 
-            ref={(el) => sectionRefs.current['account'] = el}
-            className="scroll-mt-20"
-          >
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">账户信息</h2>
-            <Card className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">手机号</label>
-                  <div className="text-lg text-gray-900">{profile.user.phone}</div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">注册时间</label>
-                  <div className="text-lg text-gray-900">
-                    {new Date(profile.user.created_at).toLocaleDateString('zh-CN')}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">订阅状态</label>
-                  <Badge className={getSubscriptionBadgeColor(profile.subscription_info.type)}>
-                    {getSubscriptionText(profile.subscription_info.type)}
-                  </Badge>
-                </div>
-                {profile.subscription_info.type === 'trial' && (
+          {activeSection === 'account' && (
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">账户信息</h2>
+              <Card className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">剩余API调用次数</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">手机号</label>
+                    <div className="text-lg text-gray-900">{profile.user.phone}</div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">注册时间</label>
                     <div className="text-lg text-gray-900">
-                      {profile.subscription_info.api_calls_remaining}
+                      {new Date(profile.user.created_at).toLocaleDateString('zh-CN')}
                     </div>
                   </div>
-                )}
-              </div>
-            </Card>
-          </section>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">订阅状态</label>
+                    <Badge className={getSubscriptionBadgeColor(profile.subscription_info.type)}>
+                      {getSubscriptionText(profile.subscription_info.type)}
+                    </Badge>
+                  </div>
+                  {profile.subscription_info.type === 'trial' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">剩余API调用次数</label>
+                      <div className="text-lg text-gray-900">
+                        {profile.subscription_info.api_calls_remaining}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
+          )}
 
           {/* 邀请码管理 */}
-          <section 
-            ref={(el) => sectionRefs.current['invite'] = el}
-            className="scroll-mt-20"
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">邀请码管理</h2>
-              {profile.invite_codes.length === 0 && (
-                <Button 
-                  onClick={generateInviteCodes} 
-                  disabled={isGeneratingCodes}
-                >
-                  {isGeneratingCodes ? '生成中...' : '生成邀请码'}
-                </Button>
-              )}
-            </div>
-            <Card className="p-6">
-              <div className="space-y-4">
-                {profile.invite_codes.map((code) => (
-                  <div key={code.code} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                    <div>
-                      <div className="font-mono text-lg font-semibold">{code.code}</div>
-                      <div className="text-sm text-gray-600">
-                        创建于 {new Date(code.created_at).toLocaleDateString('zh-CN')}
-                      </div>
-                    </div>
-                    <div>
-                      {code.used_at ? (
-                        <Badge variant="secondary">已使用</Badge>
-                      ) : (
-                        <Badge className="bg-green-100 text-green-800">可用</Badge>
-                      )}
-                    </div>
-                  </div>
-                ))}
+          {activeSection === 'invite' && (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">邀请码管理</h2>
                 {profile.invite_codes.length === 0 && (
-                  <div className="text-center text-gray-500 py-8">
-                    暂无邀请码，点击生成按钮创建
-                  </div>
+                  <Button 
+                    onClick={generateInviteCodes} 
+                    disabled={isGeneratingCodes}
+                  >
+                    {isGeneratingCodes ? '生成中...' : '生成邀请码'}
+                  </Button>
                 )}
               </div>
-            </Card>
-          </section>
+              <Card className="p-6">
+                <div className="space-y-4">
+                  {profile.invite_codes.map((code) => (
+                    <div key={code.code} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                      <div>
+                        <div className="font-mono text-lg font-semibold">{code.code}</div>
+                        <div className="text-sm text-gray-600">
+                          创建于 {new Date(code.created_at).toLocaleDateString('zh-CN')}
+                        </div>
+                      </div>
+                      <div>
+                        {code.used_at ? (
+                          <Badge variant="secondary">已使用</Badge>
+                        ) : (
+                          <Badge className="bg-green-100 text-green-800">可用</Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {profile.invite_codes.length === 0 && (
+                    <div className="text-center text-gray-500 py-8">
+                      暂无邀请码，点击生成按钮创建
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
+          )}
 
           {/* 订阅管理 */}
-          <section 
-            ref={(el) => sectionRefs.current['subscription'] = el}
-            className="scroll-mt-20"
-          >
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">订阅管理</h2>
-            <Card className="p-6">
-              {profile.subscription_info.type === 'trial' ? (
-                <div className="space-y-6">
-                  <div className="text-center">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">升级到付费版本</h3>
-                    <p className="text-gray-600">享受无限API调用和更多高级功能</p>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-300 transition-colors">
-                      <div className="text-center">
-                        <h4 className="text-lg font-semibold mb-2">月付会员</h4>
-                        <div className="text-3xl font-bold text-blue-600 mb-4">¥0.01<span className="text-sm text-gray-500">/月</span></div>
-                        <Button 
-                          onClick={() => subscribe('monthly')}
-                          className="w-full"
-                          variant="outline"
-                        >
-                          立即订阅
-                        </Button>
+          {activeSection === 'subscription' && (
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">订阅管理</h2>
+              <Card className="p-6">
+                {profile.subscription_info.type === 'trial' ? (
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">升级到付费版本</h3>
+                      <p className="text-gray-600">享受无限API调用和更多高级功能</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-300 transition-colors">
+                        <div className="text-center">
+                          <h4 className="text-lg font-semibold mb-2">月付会员</h4>
+                          <div className="text-3xl font-bold text-blue-600 mb-4">¥0.01<span className="text-sm text-gray-500">/月</span></div>
+                          <Button 
+                            onClick={() => subscribe('monthly')}
+                            className="w-full"
+                            variant="outline"
+                          >
+                            立即订阅
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="border border-blue-300 rounded-lg p-6 bg-blue-50 relative">
+                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                          <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">推荐</span>
+                        </div>
+                        <div className="text-center">
+                          <h4 className="text-lg font-semibold mb-2">年付会员</h4>
+                          <div className="text-3xl font-bold text-blue-600 mb-2">¥0.01<span className="text-sm text-gray-500">/年</span></div>
+                          <div className="text-sm text-green-600 mb-4">节省2个月费用</div>
+                          <Button 
+                            onClick={() => subscribe('yearly')}
+                            className="w-full bg-blue-600 hover:bg-blue-700"
+                          >
+                            立即订阅
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                    <div className="border border-blue-300 rounded-lg p-6 bg-blue-50 relative">
-                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                        <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">推荐</span>
-                      </div>
-                      <div className="text-center">
-                        <h4 className="text-lg font-semibold mb-2">年付会员</h4>
-                        <div className="text-3xl font-bold text-blue-600 mb-2">¥0.01<span className="text-sm text-gray-500">/年</span></div>
-                        <div className="text-sm text-green-600 mb-4">节省2个月费用</div>
-                        <Button 
-                          onClick={() => subscribe('yearly')}
-                          className="w-full bg-blue-600 hover:bg-blue-700"
-                        >
-                          立即订阅
-                        </Button>
-                      </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CreditCard className="w-8 h-8 text-green-600" />
                     </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">您已是付费用户</h3>
+                    <p className="text-gray-600">享受无限API调用和所有高级功能</p>
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CreditCard className="w-8 h-8 text-green-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">您已是付费用户</h3>
-                  <p className="text-gray-600">享受无限API调用和所有高级功能</p>
-                </div>
-              )}
-            </Card>
-          </section>
+                )}
+              </Card>
+            </div>
+          )}
 
           {/* 股票分析 */}
-          <section 
-            ref={(el) => sectionRefs.current['analysis'] = el}
-            className="scroll-mt-20"
-          >
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">股票分析</h2>
-            <Card className="p-6">
-              <div className="text-center py-8">
-                <TrendingUp className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">AI股票分析工具</h3>
-                <p className="text-gray-600 mb-4">使用先进的AI技术分析股票趋势和投资机会</p>
-                <Button onClick={handleGoToComponents} className="bg-blue-600 hover:bg-blue-700">
-                  开始分析
-                </Button>
-              </div>
-            </Card>
-          </section>
-
-
+          {activeSection === 'analysis' && (
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">股票分析</h2>
+              <Card className="p-6">
+                <div className="text-center py-8">
+                  <TrendingUp className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">AI股票分析工具</h3>
+                  <p className="text-gray-600 mb-4">使用先进的AI技术分析股票趋势和投资机会</p>
+                  <Button onClick={handleGoToComponents} className="bg-blue-600 hover:bg-blue-700">
+                    开始分析
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     </div>
