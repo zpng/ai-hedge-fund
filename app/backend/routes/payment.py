@@ -224,6 +224,27 @@ async def get_payment_records(
         payment_records = await payment_service.get_user_payment_records(current_user.id)
         
         # 转换为前端需要的格式
+        from datetime import timezone, timedelta, datetime
+        
+        # 预先计算时区和当前时间，避免重复计算
+        beijing_tz = timezone(timedelta(hours=8))
+        current_time_utc = datetime.now(timezone.utc)
+        
+        def to_beijing_time(dt):
+            if dt is None:
+                return None
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt.astimezone(beijing_tz).isoformat()
+        
+        def calculate_subscription_end_time(start_time, subscription_type_str):
+            """计算订阅结束时间"""
+            if subscription_type_str == "monthly":
+                return start_time + timedelta(days=30)
+            elif subscription_type_str == "yearly":
+                return start_time + timedelta(days=365)
+            return None
+        
         records_data = []
         for record in payment_records:
             # 计算订阅开始和结束时间（在UTC时区进行计算）
@@ -233,35 +254,16 @@ async def get_payment_records(
             
             if record.status.value == "success" and record.subscription_type:
                 # 确保start_time_utc有时区信息
-                from datetime import timezone
                 if start_time_utc.tzinfo is None:
                     start_time_utc = start_time_utc.replace(tzinfo=timezone.utc)
                 
                 # 根据订阅类型计算结束时间（在UTC时区）
                 subscription_type_str = str(record.subscription_type).lower()
-                if subscription_type_str == "monthly":
-                    from datetime import timedelta
-                    end_time_utc = start_time_utc + timedelta(days=30)
-                elif subscription_type_str == "yearly":
-                    from datetime import timedelta
-                    end_time_utc = start_time_utc + timedelta(days=365)
+                end_time_utc = calculate_subscription_end_time(start_time_utc, subscription_type_str)
                 
                 # 判断是否仍在生效中
                 if end_time_utc:
-                    from datetime import datetime, timezone
-                    current_time = datetime.now(timezone.utc)
-                    is_active = current_time < end_time_utc
-            
-            # 转换为北京时间 (UTC+8)
-            from datetime import timezone, timedelta
-            beijing_tz = timezone(timedelta(hours=8))
-            
-            def to_beijing_time(dt):
-                if dt is None:
-                    return None
-                if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=timezone.utc)
-                return dt.astimezone(beijing_tz).isoformat()
+                    is_active = current_time_utc < end_time_utc
             
             record_data = {
                 "id": record.id,

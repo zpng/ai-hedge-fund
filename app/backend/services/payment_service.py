@@ -471,6 +471,12 @@ class PaymentService:
         # 同时保存订单号到ID的映射，方便查询
         order_key = f"payment:order:{payment_record.trade_order_id}"
         self.redis_service.redis_client.set(order_key, payment_record.id)
+        
+        # 添加用户支付记录索引，使用有序集合按时间排序
+        user_payments_key = f"user_payments:{payment_record.user_id}"
+        # 使用创建时间的时间戳作为分数，支付记录ID作为成员
+        timestamp = payment_record.created_at.timestamp()
+        self.redis_service.redis_client.zadd(user_payments_key, {payment_record.id: timestamp})
 
     async def _get_payment_record(self, payment_id: str) -> Optional[PaymentRecord]:
         """从Redis获取支付记录"""
@@ -493,40 +499,31 @@ class PaymentService:
         try:
             payment_records = []
             
-            # 使用Redis的SCAN命令获取所有支付记录键
-            cursor = 0
-            while True:
-                try:
-                    cursor, keys = self.redis_service.redis_client.scan(
-                        cursor=cursor,
-                        match="payment:*",
-                        count=100
-                    )
-                    
-                    # 过滤出支付记录键（排除订单映射键）
-                    payment_keys = [key for key in keys if isinstance(key, str) and key.startswith("payment:") and not key.startswith("payment:order:")]
-                    
-                    for key in payment_keys:
-                        try:
-                            data = self.redis_service.redis_client.get(key)
-                            if data:
-                                payment_record = PaymentRecord.parse_raw(data)
-                                # 只返回当前用户的记录
-                                if payment_record.user_id == user_id:
-                                    payment_records.append(payment_record)
-                        except Exception as parse_error:
-                            logger.warning(f"解析支付记录失败: {key}, 错误: {str(parse_error)}")
-                            continue
-                    
-                    if cursor == 0:
-                        break
-                        
-                except Exception as scan_error:
-                    logger.error(f"Redis SCAN操作失败: {str(scan_error)}")
-                    break
+            # 使用用户支付记录索引直接获取，避免全表扫描
+            user_payments_key = f"user_payments:{user_id}"
             
-            # 按创建时间从最近到最远排序
-            payment_records.sort(key=lambda x: x.created_at, reverse=True)
+            # 从有序集合中获取所有支付记录ID，按时间倒序排列（最新的在前）
+            payment_ids = self.redis_service.redis_client.zrevrange(user_payments_key, 0, -1)
+            
+            if not payment_ids:
+                logger.info(f"用户 {user_id} 没有支付记录")
+                return []
+            
+            # 批量获取支付记录详情
+            for payment_id in payment_ids:
+                try:
+                    key = f"payment:{payment_id}"
+                    data = self.redis_service.redis_client.get(key)
+                    if data:
+                        payment_record = PaymentRecord.parse_raw(data)
+                        payment_records.append(payment_record)
+                    else:
+                        # 如果支付记录不存在，从索引中移除
+                        logger.warning(f"支付记录不存在，从索引中移除: {payment_id}")
+                        self.redis_service.redis_client.zrem(user_payments_key, payment_id)
+                except Exception as parse_error:
+                    logger.warning(f"解析支付记录失败: {payment_id}, 错误: {str(parse_error)}")
+                    continue
             
             logger.info(f"获取用户 {user_id} 的支付记录成功，共 {len(payment_records)} 条")
             return payment_records
