@@ -16,6 +16,8 @@ export function Login() {
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isSendingCode, setIsSendingCode] = React.useState(false);
+  const [isVerifyingEmail, setIsVerifyingEmail] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<"login" | "register">("login");
   const [registrationStep, setRegistrationStep] = React.useState<"form" | "verify">("form");
   const [error, setError] = React.useState<string | null>(null);
@@ -67,7 +69,7 @@ export function Login() {
       return;
     }
 
-    setIsLoading(true);
+    setIsSendingCode(true);
     setError('');
 
     try {
@@ -86,7 +88,7 @@ export function Login() {
         description: errorMessage,
       });
     } finally {
-      setIsLoading(false);
+      setIsSendingCode(false);
     }
   };
 
@@ -101,7 +103,7 @@ export function Login() {
       return;
     }
 
-    setIsLoading(true);
+    setIsVerifyingEmail(true);
     setError('');
 
     try {
@@ -120,7 +122,7 @@ export function Login() {
         description: errorMessage,
       });
     } finally {
-      setIsLoading(false);
+      setIsVerifyingEmail(false);
     }
   };
 
@@ -257,9 +259,9 @@ export function Login() {
                       type="button" 
                       onClick={handleSendCode} 
                       className="mt-1" 
-                      disabled={isLoading || codeSent}
+                      disabled={isSendingCode || codeSent}
                     >
-                      {codeSent ? '已发送' : '发送验证码'}
+                      {isSendingCode ? '发送中...' : codeSent ? '已发送' : '发送验证码'}
                     </Button>
                   </div>
                 </div>
@@ -283,10 +285,10 @@ export function Login() {
                       type="button" 
                       onClick={handleVerifyEmail} 
                       className={`mt-1 ${emailVerified ? 'bg-green-600 hover:bg-green-700' : ''}`}
-                      disabled={isLoading || emailVerified}
+                      disabled={isVerifyingEmail || emailVerified}
                       variant={emailVerified ? "default" : "outline"}
                     >
-                      {emailVerified ? '已验证' : '验证'}
+                      {isVerifyingEmail ? '验证中...' : emailVerified ? '已验证' : '验证'}
                     </Button>
                   </div>
                 </div>
