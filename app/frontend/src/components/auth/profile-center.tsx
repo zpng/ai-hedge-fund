@@ -52,6 +52,7 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
   const [activeSection, setActiveSection] = useState('account');
   const [clearEmail, setClearEmail] = useState('');
   const [isClearingData, setIsClearingData] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly'); // 默认选中年付会员
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -542,21 +543,38 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                       <p className="text-gray-600">享受无限API调用和更多高级功能</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-300 transition-colors">
+                      <div 
+                        className={`border rounded-lg p-6 transition-colors cursor-pointer ${
+                          selectedPlan === 'monthly' 
+                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' 
+                            : 'border-gray-200 hover:border-blue-300'
+                        }`}
+                        onClick={() => setSelectedPlan('monthly')}
+                      >
                         <div className="text-center">
                           <h4 className="text-lg font-semibold mb-2">月付会员</h4>
                           <div className="text-3xl font-bold text-blue-600 mb-4">¥66<span className="text-sm text-gray-500">/首月</span></div>
                           <div className="text-sm text-gray-500 mb-4">之后每月¥88</div>
                           <Button 
-                            onClick={() => subscribe('monthly')}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              subscribe('monthly');
+                            }}
                             className="w-full"
-                            variant="outline"
+                            variant={selectedPlan === 'monthly' ? 'default' : 'outline'}
                           >
                             立即订阅
                           </Button>
                         </div>
                       </div>
-                      <div className="border border-blue-300 rounded-lg p-6 bg-blue-50 relative">
+                      <div 
+                        className={`border rounded-lg p-6 relative transition-colors cursor-pointer ${
+                          selectedPlan === 'yearly'
+                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
+                            : 'border-gray-200 bg-white hover:border-blue-300'
+                        }`}
+                        onClick={() => setSelectedPlan('yearly')}
+                      >
                         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                           <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">推荐</span>
                         </div>
@@ -566,8 +584,15 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                           <div className="text-sm text-gray-500 mb-2">之后每年¥968</div>
                           <div className="text-sm text-green-600 mb-4">相比月付节省¥176</div>
                           <Button 
-                            onClick={() => subscribe('yearly')}
-                            className="w-full bg-blue-600 hover:bg-blue-700"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              subscribe('yearly');
+                            }}
+                            className={`w-full ${
+                              selectedPlan === 'yearly' 
+                                ? 'bg-blue-600 hover:bg-blue-700' 
+                                : 'bg-blue-500 hover:bg-blue-600'
+                            }`}
                           >
                             立即订阅
                           </Button>
@@ -595,7 +620,7 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
               <Card className="p-6">
                 <div className="text-center py-8">
                   <TrendingUp className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">AI股票分析工具</h3>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">AI股票分析工具</h3>
                   <p className="text-gray-600 mb-4">使用先进的AI技术分析股票趋势和投资机会</p>
                   <Button onClick={handleGoToComponents} className="bg-blue-600 hover:bg-blue-700">
                     开始分析
