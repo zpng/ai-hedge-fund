@@ -24,7 +24,7 @@ export const initialNodes: AppNode[] = [
     type: 'agent-node',
     position: { x: 300, y: -400 },
     data: {
-      name: 'Aswath Damodaran',
+      name: '阿斯沃斯·达莫达兰',
       description: '内在价值分析专家',
       status: '空闲',
     },
@@ -34,7 +34,7 @@ export const initialNodes: AppNode[] = [
     type: 'agent-node',
     position: { x: 300, y: -320 },
     data: {
-      name: 'Warren Buffett',
+      name: '沃伦·巴菲特',
       description: '价值投资专家',
       status: '空闲',
     },
@@ -44,7 +44,7 @@ export const initialNodes: AppNode[] = [
     type: 'agent-node',
     position: { x: 300, y: -240 },
     data: {
-      name: 'Charlie Munger',
+      name: '查理·芒格',
       description: '优质企业分析专家',
       status: '空闲',
     },
@@ -54,7 +54,7 @@ export const initialNodes: AppNode[] = [
     type: 'agent-node',
     position: { x: 300, y: -160 },
     data: {
-      name: 'Peter Lynch',
+      name: '彼得·林奇',
       description: '合理价格成长投资专家',
       status: '空闲',
     },
@@ -64,7 +64,7 @@ export const initialNodes: AppNode[] = [
     type: 'agent-node',
     position: { x: 300, y: -80 },
     data: {
-      name: 'Bill Ackman',
+      name: '比尔·阿克曼',
       description: '激进投资专家',
       status: '空闲',
     },
@@ -74,7 +74,7 @@ export const initialNodes: AppNode[] = [
     type: 'agent-node',
     position: { x: 300, y: 0 },
     data: {
-      name: 'Cathie Wood',
+      name: '凯西·伍德',
       description: '创新与颠覆性增长专家',
       status: '空闲',
     },
@@ -84,7 +84,7 @@ export const initialNodes: AppNode[] = [
     type: 'agent-node',
     position: { x: 300, y: 80 },
     data: {
-      name: 'Michael Burry',
+      name: '迈克尔·伯里',
       description: '逆向价值投资专家',
       status: '空闲',
     },
@@ -94,7 +94,7 @@ export const initialNodes: AppNode[] = [
     type: 'agent-node',
     position: { x: 300, y: 160 },
     data: {
-      name: 'Stanley Druckenmiller',
+      name: '斯坦利·德鲁肯米勒',
       description: '宏观交易专家',
       status: '空闲',
     },
@@ -104,7 +104,7 @@ export const initialNodes: AppNode[] = [
     type: 'agent-node',
     position: { x: 300, y: 240 },
     data: {
-      name: 'Phil Fisher',
+      name: '菲利普·费雪',
       description: '成长投资专家',
       status: '空闲',
     },
@@ -114,7 +114,7 @@ export const initialNodes: AppNode[] = [
     type: 'agent-node',
     position: { x: 300, y: 320 },
     data: {
-      name: 'Ben Graham',
+      name: '本杰明·格雷厄姆',
       description: '价值投资先驱',
       status: '空闲',
     },
@@ -124,7 +124,7 @@ export const initialNodes: AppNode[] = [
     type: 'agent-node',
     position: { x: 300, y: 400 },
     data: {
-      name: 'Rakesh Jhunjhunwala',
+      name: '拉凯什·朱恩朱恩瓦拉',
       description: '印度市场专家',
       status: '空闲',
     },
@@ -134,7 +134,7 @@ export const initialNodes: AppNode[] = [
     type: 'agent-node',
     position: { x: 300, y: 480 },
     data: {
-      name: 'Sentiment Analyst',
+      name: '情绪分析师',
       description: '市场情绪分析专家',
       status: '空闲',
     },
@@ -144,7 +144,7 @@ export const initialNodes: AppNode[] = [
     type: 'agent-node',
     position: { x: 300, y: 560 },
     data: {
-      name: 'Technical Analyst',
+      name: '技术分析师',
       description: '技术分析专家',
       status: '空闲',
     },
@@ -154,7 +154,7 @@ export const initialNodes: AppNode[] = [
     type: 'agent-node',
     position: { x: 300, y: 640 },
     data: {
-      name: 'Fundamentals Analyst',
+      name: '基本面分析师',
       description: '基本面分析专家',
       status: '空闲',
     },
@@ -164,7 +164,7 @@ export const initialNodes: AppNode[] = [
     type: 'agent-node',
     position: { x: 300, y: 720 },
     data: {
-      name: 'Valuation Analyst',
+      name: '估值分析师',
       description: '估值分析专家',
       status: '空闲',
     },
