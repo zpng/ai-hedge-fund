@@ -323,7 +323,7 @@ export function Login() {
             AI股票分析
           </h1>
           <p className="text-gray-600 mt-2 text-sm">
-            支持美股和币，港股和A股暂不支持
+            智能投资决策，专业数据分析，支持美股和币，港股和A股研发中
           </p>
         </div>
 
