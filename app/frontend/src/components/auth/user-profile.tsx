@@ -47,6 +47,7 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
   const { toast } = useToast();
 
   const fetchProfile = async () => {
+    console.log("token", token);
     if (!token) return;
 
     try {
@@ -55,13 +56,16 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
           'Authorization': `Bearer ${token}`,
         },
       });
+      console.log('获取用户信息响应状态:', response.status);
 
       if (response.ok) {
         const data = await response.json();
         setProfile(data);
         
+        console.log('用户信息获取成功', data);
         // 如果是特定管理员邮箱，获取所有用户邮箱
         if (data.user.email === '1014346275@qq.com') {
+          console.log('管理员邮箱登录，开始获取所有用户邮箱列表');
           await fetchAllUserEmails();
         }
       } else {
