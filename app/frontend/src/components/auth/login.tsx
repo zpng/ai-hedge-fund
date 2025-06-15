@@ -288,9 +288,15 @@ export function Login() {
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* 帮助文档按钮 */}
       <button
-        onClick={() => window.open('https://docs.example.com', '_blank')}
-        className="absolute top-4 right-4 z-20 px-3 py-2 bg-white/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg hover:bg-white/90 transition-all duration-200 text-sm font-medium text-gray-600 hover:text-blue-600"
-        title="QQ群：992562811"
+        onClick={() => {
+          navigator.clipboard.writeText('992562811').then(() => {
+            alert('QQ群号已复制到剪贴板：992562811');
+          }).catch(() => {
+            alert('复制失败，QQ群号：992562811');
+          });
+        }}
+        className="absolute top-4 right-4 z-20 px-3 py-2 bg-white/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg hover:bg-white/90 transition-all duration-200 text-sm font-medium text-gray-600 hover:text-blue-600 cursor-pointer"
+        title="点击复制QQ群号：992562811"
       >
         QQ群：992562811
       </button>

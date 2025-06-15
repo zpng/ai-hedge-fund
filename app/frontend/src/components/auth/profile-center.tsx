@@ -441,9 +441,15 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
     <div className="min-h-screen bg-gray-50 flex relative">
       {/* 帮助文档按钮 */}
       <button
-        onClick={() => window.open('https://docs.example.com', '_blank')}
-        className="absolute top-4 right-4 z-20 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all duration-200 text-sm font-medium text-gray-600 hover:text-blue-600"
-        title="QQ群：992562811"
+        onClick={() => {
+          navigator.clipboard.writeText('992562811').then(() => {
+            alert('QQ群号已复制到剪贴板：992562811');
+          }).catch(() => {
+            alert('复制失败，QQ群号：992562811');
+          });
+        }}
+        className="absolute top-4 right-4 z-20 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all duration-200 text-sm font-medium text-gray-600 hover:text-blue-600 cursor-pointer"
+        title="点击复制QQ群号：992562811"
       >
         QQ群：992562811
       </button>
