@@ -93,6 +93,29 @@ export function InvestmentReportDialog({
     const agents = Object.keys(outputNodeData.analyst_signals || {})
         .filter(agent => agent !== 'risk_management_agent');
 
+    // Agent name mapping from English to Chinese
+    const getAgentDisplayName = (agentKey: string) => {
+        const agentNameMap: { [key: string]: string } = {
+            'fundamentals_analyst_agent': '基本面分析师',
+            'technical_analyst_agent': '技术分析师',
+            'sentiment_agent': '情绪分析师',
+            'valuation_analyst_agent': '估值分析师',
+            'warren_buffett_agent': '沃伦·巴菲特分析师',
+            'peter_lynch_agent': '彼得·林奇分析师',
+            'ben_graham_agent': '本杰明·格雷厄姆分析师',
+            'phil_fisher_agent': '菲利普·费雪分析师',
+            'charlie_munger_agent': '查理·芒格分析师',
+            'bill_ackman_agent': '比尔·阿克曼分析师',
+            'michael_burry_agent': '迈克尔·伯里分析师',
+            'cathie_wood_agent': '凯西·伍德分析师',
+            'stanley_druckenmiller_agent': '斯坦利·德鲁肯米勒分析师',
+            'aswath_damodaran_agent': '阿斯瓦斯·达莫达兰分析师',
+            'rakesh_jhunjhunwala_agent': '拉凯什·朱恩朱恩瓦拉分析师',
+            'risk_management_agent': '风险管理分析师'
+        };
+        return agentNameMap[agentKey] || agentKey.replace(/_/g, ' ');
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -212,8 +235,8 @@ export function InvestmentReportDialog({
                                                         <Card key={agent} className="overflow-hidden">
                                                             <CardHeader className="bg-muted/50 pb-3">
                                                                 <div className="flex items-center justify-between">
-                                                                    <CardTitle className="text-base capitalize">
-                                                                        {agent.replace(/_/g, ' ')}
+                                                                    <CardTitle className="text-base">
+                                                                        {getAgentDisplayName(agent)}
                                                                     </CardTitle>
                                                                     <div className="flex items-center gap-2">
                                                                         {getSignalBadge(signal.signal)}
