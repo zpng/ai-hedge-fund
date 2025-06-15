@@ -78,14 +78,14 @@ export function AgentNode({
       status={status}
     >
       <CardContent className="p-0">
-        <div className="border-t border-border p-3">
-          <div className="flex flex-col gap-2">
+        <div className="border-t border-border p-4">
+          <div className="flex flex-col gap-3">
             <div className="text-subtitle text-muted-foreground flex items-center gap-1">
               Status
             </div>
 
             <div className={cn(
-              "text-foreground text-xs rounded p-2",
+              "text-foreground text-sm rounded p-3 min-h-[40px] flex items-center justify-center font-medium",
               isInProgress ? "gradient-animation" : getStatusColor(status)
             )}>
               <span className="capitalize">{status.toLowerCase().replace(/_/g, ' ')}</span>

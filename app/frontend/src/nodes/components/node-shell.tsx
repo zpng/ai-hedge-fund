@@ -34,7 +34,7 @@ export function NodeShell({
   return (
     <div
       className={cn(
-        "react-flow__node-default relative w-64 select-none cursor-pointer p-0 rounded-lg border transition-all duration-200 hover:border-primary hover:shadow-[0_0_10px_1px_rgba(255,255,255,0.1)]",
+        "react-flow__node-default relative w-72 select-none cursor-pointer p-0 rounded-lg border transition-all duration-200 hover:border-primary hover:shadow-[0_0_10px_1px_rgba(255,255,255,0.1)]",
         selected && "ring-1 ring-primary dark:ring-offset-background",
         isInProgress && "node-in-progress"
       )}
@@ -54,19 +54,19 @@ export function NodeShell({
       )}
       <div className="overflow-hidden rounded-lg">
         <Card className="bg-card rounded-none overflow-hidden border-none">
-          <CardHeader className="p-3 bg-secondary flex flex-row items-center space-x-2 rounded-t-sm">
+          <CardHeader className="p-4 bg-secondary flex flex-row items-center space-x-3 rounded-t-sm min-h-[60px]">
             <div className={cn(
-              "flex items-center justify-center h-8 w-8 rounded-lg text-white",
+              "flex items-center justify-center h-9 w-9 rounded-lg text-white flex-shrink-0",
               isInProgress ? "gradient-animation" : iconColor
             )}>
               {icon}
             </div>
-            <div className="text-title font-semibold text-primary">
-              {name || "Custom Component"}
+            <div className="text-title font-semibold text-primary flex-1 min-w-0">
+              <div className="truncate">{name || "Custom Component"}</div>
             </div>
           </CardHeader>
           {description && (
-            <div className="px-3 py-2 text-subtitle text-muted-foreground">
+            <div className="px-4 py-3 text-subtitle text-muted-foreground leading-relaxed">
               {description}
             </div>
           )}
@@ -83,4 +83,4 @@ export function NodeShell({
       )}
     </div>
   );
-} 
+}

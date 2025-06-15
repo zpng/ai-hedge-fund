@@ -20,15 +20,15 @@ const config: Config = {
   	extend: {
   		fontSize: {
   			title: [
-  				'0.875rem',
+  				'1rem',
   				{
-  					lineHeight: '1.25rem'
+  					lineHeight: '1.5rem'
   				}
   			],
   			subtitle: [
-  				'0.625rem',
+  				'0.75rem',
   				{
-  					lineHeight: '1rem'
+  					lineHeight: '1.125rem'
   				}
   			]
   		},

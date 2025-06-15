@@ -12,7 +12,7 @@ export const initialNodes: AppNode[] = [
   {
     id: 'portfolio-manager-node',
     type: 'portfolio-manager-node',
-    position: { x: 0, y: 0 },
+    position: { x: -150, y: 0 },
     data: {
       name: 'Portfolio Manager',
       description: 'Start Node',
@@ -22,7 +22,7 @@ export const initialNodes: AppNode[] = [
   {
     id: 'aswath_damodaran',
     type: 'agent-node',
-    position: { x: 300, y: -200 },
+    position: { x: 300, y: -400 },
     data: {
       name: 'Aswath Damodaran',
       description: 'Intrinsic Value Analysis Specialist',
@@ -32,7 +32,7 @@ export const initialNodes: AppNode[] = [
   {
     id: 'warren_buffett',
     type: 'agent-node',
-    position: { x: 300, y: -170 },
+    position: { x: 300, y: -320 },
     data: {
       name: 'Warren Buffett',
       description: 'Value Investing Specialist',
@@ -42,7 +42,7 @@ export const initialNodes: AppNode[] = [
   {
     id: 'charlie_munger',
     type: 'agent-node',
-    position: { x: 300, y: -140 },
+    position: { x: 300, y: -240 },
     data: {
       name: 'Charlie Munger',
       description: 'Quality Business Analysis Specialist',
@@ -52,7 +52,7 @@ export const initialNodes: AppNode[] = [
   {
     id: 'peter_lynch',
     type: 'agent-node',
-    position: { x: 300, y: -110 },
+    position: { x: 300, y: -160 },
     data: {
       name: 'Peter Lynch',
       description: 'Growth at Reasonable Price Specialist',
@@ -72,7 +72,7 @@ export const initialNodes: AppNode[] = [
   {
     id: 'cathie_wood',
     type: 'agent-node',
-    position: { x: 300, y: -50 },
+    position: { x: 300, y: 0 },
     data: {
       name: 'Cathie Wood',
       description: 'Innovation & Disruptive Growth Specialist',
@@ -82,7 +82,7 @@ export const initialNodes: AppNode[] = [
   {
     id: 'michael_burry',
     type: 'agent-node',
-    position: { x: 300, y: -20 },
+    position: { x: 300, y: 80 },
     data: {
       name: 'Michael Burry',
       description: 'Contrarian Value Investing Specialist',
@@ -92,7 +92,7 @@ export const initialNodes: AppNode[] = [
   {
     id: 'stanley_druckenmiller',
     type: 'agent-node',
-    position: { x: 300, y: 10 },
+    position: { x: 300, y: 160 },
     data: {
       name: 'Stanley Druckenmiller',
       description: 'Macro Trading Specialist',
@@ -102,7 +102,7 @@ export const initialNodes: AppNode[] = [
   {
     id: 'phil_fisher',
     type: 'agent-node',
-    position: { x: 300, y: 40 },
+    position: { x: 300, y: 240 },
     data: {
       name: 'Phil Fisher',
       description: 'Growth Investing Specialist',
@@ -112,7 +112,7 @@ export const initialNodes: AppNode[] = [
   {
     id: 'ben_graham',
     type: 'agent-node',
-    position: { x: 300, y: 70 },
+    position: { x: 300, y: 320 },
     data: {
       name: 'Ben Graham',
       description: 'Value Investing Pioneer',
@@ -122,7 +122,7 @@ export const initialNodes: AppNode[] = [
   {
     id: 'rakesh_jhunjhunwala',
     type: 'agent-node',
-    position: { x: 300, y: 100 },
+    position: { x: 300, y: 400 },
     data: {
       name: 'Rakesh Jhunjhunwala',
       description: 'Indian Market Specialist',
@@ -132,7 +132,7 @@ export const initialNodes: AppNode[] = [
   {
     id: 'sentiment_analyst',
     type: 'agent-node',
-    position: { x: 300, y: 130 },
+    position: { x: 300, y: 480 },
     data: {
       name: 'Sentiment Analyst',
       description: 'Market Sentiment Analysis Specialist',
@@ -142,7 +142,7 @@ export const initialNodes: AppNode[] = [
   {
     id: 'technical_analyst',
     type: 'agent-node',
-    position: { x: 300, y: 160 },
+    position: { x: 300, y: 560 },
     data: {
       name: 'Technical Analyst',
       description: 'Technical Analysis Specialist',
@@ -152,7 +152,7 @@ export const initialNodes: AppNode[] = [
   {
     id: 'fundamentals_analyst',
     type: 'agent-node',
-    position: { x: 300, y: 190 },
+    position: { x: 300, y: 640 },
     data: {
       name: 'Fundamentals Analyst',
       description: 'Fundamental Analysis Specialist',
@@ -162,7 +162,7 @@ export const initialNodes: AppNode[] = [
   {
     id: 'valuation_analyst',
     type: 'agent-node',
-    position: { x: 300, y: 220 },
+    position: { x: 300, y: 720 },
     data: {
       name: 'Valuation Analyst',
       description: 'Valuation Analysis Specialist',
@@ -172,7 +172,7 @@ export const initialNodes: AppNode[] = [
   {
     id: 'risk_manager',
     type: 'agent-node',
-    position: { x: 300, y: 250 },
+    position: { x: 300, y: 800 },
     data: {
       name: 'Risk Manager',
       description: 'Risk Management Specialist',
@@ -182,7 +182,7 @@ export const initialNodes: AppNode[] = [
   {
     id: 'investment-report-node',
     type: 'investment-report-node',
-    position: { x: 600, y: 25 },
+    position: { x: 750, y: 200 },
     data: {
       name: 'Investment Report',
       description: 'End Node',
