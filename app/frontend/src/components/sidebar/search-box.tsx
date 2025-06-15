@@ -19,7 +19,7 @@ export function SearchBox({
         <input 
           type="text" 
           placeholder={placeholder} 
-          className="bg-transparent text-sm focus:outline-none text-white w-full placeholder-gray-400"
+          className="bg-transparent text-base md:text-sm focus:outline-none text-white w-full placeholder-gray-400 -webkit-appearance-none appearance-none touch-manipulation"
           value={value}
           onChange={(e) => onChange(e.target.value)}
         />

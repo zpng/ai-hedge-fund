@@ -574,6 +574,7 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                       </p>
                       <div className="flex gap-3">
                         <input
+                      className="text-base md:text-sm -webkit-appearance-none appearance-none touch-manipulation"
                           type="email"
                           placeholder="输入要清空数据的邮箱地址"
                           value={clearEmail}
