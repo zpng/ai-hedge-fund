@@ -153,7 +153,7 @@ def get_model(model_name: str, model_provider: ModelProvider) -> ChatOpenAI | Ch
             raise ValueError(error_msg)
         logger.info(f"成功获取OpenAI API密钥")
         try:
-            model = ChatOpenAI(model=model_name, api_key=api_key, base_url=base_url)
+            model = ChatOpenAI(model=model_name, api_key=api_key)
             logger.info(f"成功初始化OpenAI模型")
             return model
         except Exception as e:
@@ -198,7 +198,21 @@ def get_model(model_name: str, model_provider: ModelProvider) -> ChatOpenAI | Ch
             raise ValueError(error_msg)
         logger.info(f"成功获取Google API密钥")
         try:
-            model = ChatGoogleGenerativeAI(model=model_name, api_key=api_key)
+            # 构建Gemini模型参数
+            gemini_params = {
+                "model": model_name,
+                "api_key": api_key
+            }
+            
+            # 如果设置了GEMINI_MODEL_BASE_URL，使用client_options来配置代理端点
+            gemini_base_url = os.getenv("GEMINI_MODEL_BASE_URL")
+            if gemini_base_url:
+                logger.info(f"使用自定义Gemini API端点: {gemini_base_url}")
+                gemini_params["client_options"] = {
+                    "api_endpoint": gemini_base_url
+                }
+            
+            model = ChatGoogleGenerativeAI(**gemini_params)
             logger.info(f"成功初始化Gemini模型")
             return model
         except Exception as e:

@@ -1,7 +1,7 @@
 [
   {
     "display_name": "Claude Haiku 3.5",
-    "model_name": "claude-3-5-haiku-latest",
+    "model_name": "claude-3-5-haiku-20241022",
     "provider": "Anthropic"
   },
   {
