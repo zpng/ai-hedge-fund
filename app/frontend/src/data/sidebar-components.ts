@@ -33,17 +33,17 @@ export const getComponentGroups = async (): Promise<ComponentGroup[]> => {
   
   return [
     {
-      name: "start nodes",
+      name: "起始节点",
       icon: Play,
       iconColor: "text-blue-400",
       items: [
-        // { name: "Chat Input", icon: MessageSquare },
-        { name: "Portfolio Manager", icon: Brain },
-        // { name: "File Input", icon: FileText }
+        // { name: "聊天输入", icon: MessageSquare },
+        { name: "投资组合管理器", icon: Brain },
+        // { name: "文件输入", icon: FileText }
       ]
     },
     {
-      name: "agents",
+      name: "智能分析师",
       icon: Bot,
       iconColor: "text-red-400",
       items: agents.map((agent: Agent) => ({
@@ -52,21 +52,21 @@ export const getComponentGroups = async (): Promise<ComponentGroup[]> => {
       }))
     },
     {
-      name: "swarms",
+      name: "分析团队",
       icon: Network,
       iconColor: "text-yellow-400",
       items: [
-        { name: "Data Wizards", icon: Calculator },
-        { name: "Value Investors", icon: BadgeDollarSign },
+        { name: "数据分析团队", icon: Calculator },
+        { name: "价值投资团队", icon: BadgeDollarSign },
       ]
     },
     {
-      name: "end nodes",
+      name: "输出节点",
       icon: StopCircle,
       iconColor: "text-green-400",
       items: [
-        { name: "JSON Output", icon: FileJson },
-        { name: "Investment Report", icon: FileText },
+        { name: "JSON输出", icon: FileJson },
+        { name: "投资报告", icon: FileText },
       ]
     },
   ];

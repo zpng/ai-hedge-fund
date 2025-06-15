@@ -14,9 +14,9 @@ export const initialNodes: AppNode[] = [
     type: 'portfolio-manager-node',
     position: { x: -150, y: 0 },
     data: {
-      name: 'Portfolio Manager',
-      description: 'Start Node',
-      status: 'Idle',
+      name: '投资组合管理器',
+      description: '起始节点',
+      status: '空闲',
     },
   },
   {
@@ -25,8 +25,8 @@ export const initialNodes: AppNode[] = [
     position: { x: 300, y: -400 },
     data: {
       name: 'Aswath Damodaran',
-      description: 'Intrinsic Value Analysis Specialist',
-      status: 'Idle',
+      description: '内在价值分析专家',
+      status: '空闲',
     },
   },
   {
@@ -35,8 +35,8 @@ export const initialNodes: AppNode[] = [
     position: { x: 300, y: -320 },
     data: {
       name: 'Warren Buffett',
-      description: 'Value Investing Specialist',
-      status: 'Idle',
+      description: '价值投资专家',
+      status: '空闲',
     },
   },
   {
@@ -45,8 +45,8 @@ export const initialNodes: AppNode[] = [
     position: { x: 300, y: -240 },
     data: {
       name: 'Charlie Munger',
-      description: 'Quality Business Analysis Specialist',
-      status: 'Idle',
+      description: '优质企业分析专家',
+      status: '空闲',
     },
   },
   {
@@ -55,8 +55,8 @@ export const initialNodes: AppNode[] = [
     position: { x: 300, y: -160 },
     data: {
       name: 'Peter Lynch',
-      description: 'Growth at Reasonable Price Specialist',
-      status: 'Idle',
+      description: '合理价格成长投资专家',
+      status: '空闲',
     },
   },
   {
@@ -65,8 +65,8 @@ export const initialNodes: AppNode[] = [
     position: { x: 300, y: -80 },
     data: {
       name: 'Bill Ackman',
-      description: 'Activist Investing Specialist',
-      status: 'Idle',
+      description: '激进投资专家',
+      status: '空闲',
     },
   },
   {
@@ -75,8 +75,8 @@ export const initialNodes: AppNode[] = [
     position: { x: 300, y: 0 },
     data: {
       name: 'Cathie Wood',
-      description: 'Innovation & Disruptive Growth Specialist',
-      status: 'Idle',
+      description: '创新与颠覆性增长专家',
+      status: '空闲',
     },
   },
   {
@@ -85,8 +85,8 @@ export const initialNodes: AppNode[] = [
     position: { x: 300, y: 80 },
     data: {
       name: 'Michael Burry',
-      description: 'Contrarian Value Investing Specialist',
-      status: 'Idle',
+      description: '逆向价值投资专家',
+      status: '空闲',
     },
   },
   {
@@ -95,8 +95,8 @@ export const initialNodes: AppNode[] = [
     position: { x: 300, y: 160 },
     data: {
       name: 'Stanley Druckenmiller',
-      description: 'Macro Trading Specialist',
-      status: 'Idle',
+      description: '宏观交易专家',
+      status: '空闲',
     },
   },
   {
@@ -105,8 +105,8 @@ export const initialNodes: AppNode[] = [
     position: { x: 300, y: 240 },
     data: {
       name: 'Phil Fisher',
-      description: 'Growth Investing Specialist',
-      status: 'Idle',
+      description: '成长投资专家',
+      status: '空闲',
     },
   },
   {
@@ -115,8 +115,8 @@ export const initialNodes: AppNode[] = [
     position: { x: 300, y: 320 },
     data: {
       name: 'Ben Graham',
-      description: 'Value Investing Pioneer',
-      status: 'Idle',
+      description: '价值投资先驱',
+      status: '空闲',
     },
   },
   {
@@ -125,8 +125,8 @@ export const initialNodes: AppNode[] = [
     position: { x: 300, y: 400 },
     data: {
       name: 'Rakesh Jhunjhunwala',
-      description: 'Indian Market Specialist',
-      status: 'Idle',
+      description: '印度市场专家',
+      status: '空闲',
     },
   },
   {
@@ -135,8 +135,8 @@ export const initialNodes: AppNode[] = [
     position: { x: 300, y: 480 },
     data: {
       name: 'Sentiment Analyst',
-      description: 'Market Sentiment Analysis Specialist',
-      status: 'Idle',
+      description: '市场情绪分析专家',
+      status: '空闲',
     },
   },
   {
@@ -145,8 +145,8 @@ export const initialNodes: AppNode[] = [
     position: { x: 300, y: 560 },
     data: {
       name: 'Technical Analyst',
-      description: 'Technical Analysis Specialist',
-      status: 'Idle',
+      description: '技术分析专家',
+      status: '空闲',
     },
   },
   {
@@ -155,8 +155,8 @@ export const initialNodes: AppNode[] = [
     position: { x: 300, y: 640 },
     data: {
       name: 'Fundamentals Analyst',
-      description: 'Fundamental Analysis Specialist',
-      status: 'Idle',
+      description: '基本面分析专家',
+      status: '空闲',
     },
   },
   {
@@ -165,8 +165,8 @@ export const initialNodes: AppNode[] = [
     position: { x: 300, y: 720 },
     data: {
       name: 'Valuation Analyst',
-      description: 'Valuation Analysis Specialist',
-      status: 'Idle',
+      description: '估值分析专家',
+      status: '空闲',
     },
   },
   {
@@ -175,8 +175,8 @@ export const initialNodes: AppNode[] = [
     position: { x: 300, y: 800 },
     data: {
       name: 'Risk Manager',
-      description: 'Risk Management Specialist',
-      status: 'Idle',
+      description: '风险管理专家',
+      status: '空闲',
     },
   },
   {
@@ -184,9 +184,9 @@ export const initialNodes: AppNode[] = [
     type: 'investment-report-node',
     position: { x: 750, y: 200 },
     data: {
-      name: 'Investment Report',
-      description: 'End Node',
-      status: 'Idle',
+      name: '投资报告',
+      description: '输出节点',
+      status: '空闲',
     },
   },
 ];

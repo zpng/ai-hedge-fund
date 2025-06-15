@@ -11,39 +11,39 @@ let nodeTypeDefinitionsCache: Record<string, NodeTypeDefinition> | null = null;
 
 // Define base node creation functions (non-agent nodes)
 const baseNodeTypeDefinitions: Record<string, NodeTypeDefinition> = {
-  "Portfolio Manager": {
+  "投资组合管理器": {
     createNode: (position: { x: number, y: number }): AppNode => ({
       id: `portfolio-manager-node`,
       type: "portfolio-manager-node",
       position,
       data: {
-        name: "Portfolio Manager",
-        description: "Start Node",
-        status: "Idle",
+        name: "投资组合管理器",
+        description: "起始节点",
+        status: "空闲",
       },
     }),
   },
-  "JSON Output": {
+  "JSON输出": {
     createNode: (position: { x: number, y: number }): AppNode => ({
       id: `json-output-node`,
       type: "json-output-node",
       position,
       data: {
-        name: "JSON Output",
-        description: "End Node",
-        status: "Idle",
+        name: "JSON输出",
+        description: "输出节点",
+        status: "空闲",
       },
     }),
   },
-  "Investment Report": {
+  "投资报告": {
     createNode: (position: { x: number, y: number }): AppNode => ({
       id: `investment-report-node`,
       type: "investment-report-node",
       position,
       data: {
-        name: "Investment Report",
-        description: "End Node",
-        status: "Idle",
+        name: "投资报告",
+        description: "输出节点",
+        status: "空闲",
       },
     }),
   },
@@ -107,4 +107,4 @@ export async function getNodeIdForComponent(componentName: string): Promise<stri
  */
 export const clearNodeTypeDefinitionsCache = () => {
   nodeTypeDefinitionsCache = null;
-}; 
+};

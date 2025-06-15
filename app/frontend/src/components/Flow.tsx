@@ -145,7 +145,7 @@ export function Flow({ className = '', onGoToHome }: FlowProps) {
               size="sm"
               className="bg-white text-black hover:bg-gray-200 font-medium"
             >
-              Reset Flow
+              重置流程
             </Button>
           </div>
         </Panel>

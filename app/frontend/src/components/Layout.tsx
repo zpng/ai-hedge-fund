@@ -46,9 +46,9 @@ export function Layout({ leftSidebar, rightSidebar, children }: LayoutProps) {
               <Button 
                 className="absolute top-4 left-4 z-30 bg-ramp-grey-800 text-white p-4 rounded-md hover:bg-ramp-grey-700"
                 onClick={() => setIsCollapsed(false)}
-                aria-label="Show sidebar"
+                aria-label="显示侧边栏"
               >
-                Components <PanelLeft size={16} />
+                组件 <PanelLeft size={16} />
               </Button>
             )}
 

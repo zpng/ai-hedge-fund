@@ -65,14 +65,14 @@ export function LeftSidebar({
       }}
     >
       <div className="p-2 flex justify-between flex-shrink-0 items-center border-b border-ramp-grey-700 mt-4">
-        <span className="text-white text-sm font-medium ml-4">Components</span>
+        <span className="text-white text-sm font-medium ml-4">组件</span>
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
             size="icon"
             onClick={onToggleCollapse}
             className="h-6 w-6 text-white hover:bg-ramp-grey-700"
-            aria-label="Toggle sidebar"
+            aria-label="切换侧边栏"
           >
             <PanelLeft size={16} />
           </Button>
@@ -102,7 +102,7 @@ export function LeftSidebar({
 
         {filteredGroups.length === 0 && (
           <div className="text-center py-8 text-gray-400 text-sm">
-            No components match your search
+            没有找到匹配的组件
           </div>
         )}
       </div>
@@ -116,4 +116,4 @@ export function LeftSidebar({
       )}
     </div>
   );
-} 
+}

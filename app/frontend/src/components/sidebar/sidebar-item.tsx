@@ -56,11 +56,11 @@ export function SidebarItem({
           size="icon"
           className="h-5 w-5 p-0 hover:bg-transparent hover:text-white text-gray-500"
           onClick={handlePlusClick}
-          aria-label="Add"
+          aria-label="添加"
         >
           <Plus size={14} />
         </Button>
       </div>
     </div>
   );
-} 
+}
