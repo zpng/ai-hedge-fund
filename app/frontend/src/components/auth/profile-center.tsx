@@ -593,7 +593,7 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                           placeholder="输入要清空数据的邮箱地址"
                           value={clearEmail}
                           onChange={(e) => setClearEmail(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-base md:text-sm -webkit-appearance-none appearance-none touch-manipulation [-webkit-text-fill-color:inherit] [background-color:transparent!important] [-webkit-background-clip:text] [caret-color:currentColor] [color:inherit] focus:[-webkit-text-fill-color:inherit] focus:[background-color:transparent!important]"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-base md:text-sm -webkit-appearance-none appearance-none touch-manipulation [color:hsl(var(--foreground))!important] [-webkit-text-fill-color:hsl(var(--foreground))!important] [background-color:transparent!important] [caret-color:hsl(var(--foreground))] focus:[color:hsl(var(--foreground))!important] focus:[-webkit-text-fill-color:hsl(var(--foreground))!important] focus:[background-color:transparent!important]"
                           autoComplete="off"
                           autoCorrect="off"
                           autoCapitalize="off"

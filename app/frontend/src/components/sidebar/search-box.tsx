@@ -19,7 +19,7 @@ export function SearchBox({
         <input 
           type="text" 
           placeholder={placeholder} 
-          className="bg-transparent text-base md:text-sm focus:outline-none text-white w-full placeholder-gray-400 -webkit-appearance-none appearance-none touch-manipulation [-webkit-text-fill-color:inherit] [background-color:transparent!important] [-webkit-background-clip:text] [caret-color:currentColor] [color:inherit] focus:[-webkit-text-fill-color:inherit] focus:[background-color:transparent!important]"
+          className="bg-transparent text-base md:text-sm focus:outline-none text-white w-full placeholder-gray-400 -webkit-appearance-none appearance-none touch-manipulation [color:white!important] [-webkit-text-fill-color:white!important] [background-color:transparent!important] [caret-color:white] focus:[color:white!important] focus:[-webkit-text-fill-color:white!important] focus:[background-color:transparent!important]"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           autoComplete="off"
