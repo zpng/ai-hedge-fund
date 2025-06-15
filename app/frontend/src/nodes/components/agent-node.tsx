@@ -100,12 +100,12 @@ export function AgentNode({
             <Accordion type="single" collapsible>
               <AccordionItem value="advanced" className="border-none">
                 <AccordionTrigger className="!text-subtitle text-muted-foreground">
-                  Advanced
+                  高级设置
                 </AccordionTrigger>
                 <AccordionContent className="pt-2">
                   <div className="flex flex-col gap-2">
                     <div className="text-subtitle text-muted-foreground flex items-center gap-1">
-                      Model
+                      模型
                     </div>
                     <ModelSelector
                       models={availableModels}

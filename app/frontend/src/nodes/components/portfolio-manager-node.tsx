@@ -194,7 +194,7 @@ export function PortfolioManagerNode({
                 <div className="text-subtitle text-muted-foreground flex items-center gap-1">
                   <Tooltip delayDuration={200}>
                     <TooltipTrigger asChild>
-                      <span>Tickers</span>
+                      <span>股票代码</span>
                     </TooltipTrigger>
                     <TooltipContent side="right">
                       You can add multiple tickers using commas (AAPL,NVDA,TSLA)
@@ -224,7 +224,7 @@ export function PortfolioManagerNode({
               </div>
               <div className="flex flex-col gap-2">
                 <div className="text-subtitle text-muted-foreground flex items-center gap-1">
-                  Model
+                  模型
                 </div>
                 <ModelSelector
                   models={availableModels}
@@ -236,7 +236,7 @@ export function PortfolioManagerNode({
               <Accordion type="single" collapsible>
                 <AccordionItem value="advanced" className="border-none">
                   <AccordionTrigger className="!text-subtitle text-muted-foreground">
-                    Advanced
+                    高级设置
                   </AccordionTrigger>
                   <AccordionContent className="pt-2">
                     <div className="flex flex-col gap-4">
