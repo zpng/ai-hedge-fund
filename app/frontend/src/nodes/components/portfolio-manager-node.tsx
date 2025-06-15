@@ -208,16 +208,20 @@ export function PortfolioManagerNode({
                     onChange={handleTickersChange}
                   />
                   <Button 
-                    size="icon" 
-                    variant="secondary"
-                    className="flex-shrink-0 transition-all duration-200 hover:bg-primary hover:text-primary-foreground active:scale-95"
+                    className="flex-shrink-0 transition-all duration-200 bg-green-600 hover:bg-green-700 text-white active:scale-95 px-3 py-2 h-auto min-w-fit"
                     onClick={isProcessing ? handleStop : handlePlay}
                     disabled={!isProcessing && !tickers.trim()}
                   >
                     {isProcessing ? (
-                      <Square className="h-3.5 w-3.5" />
+                      <>
+                        <Square className="h-3.5 w-3.5 mr-1" />
+                        停止分析
+                      </>
                     ) : (
-                      <Play className="h-3.5 w-3.5" />
+                      <>
+                        <Play className="h-3.5 w-3.5 mr-1" />
+                        开始分析
+                      </>
                     )}
                   </Button>
                 </div>
