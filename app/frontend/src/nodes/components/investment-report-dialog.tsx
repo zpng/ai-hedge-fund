@@ -345,8 +345,10 @@ export function InvestmentReportDialog({
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="text-xl font-bold flex items-center justify-between">
+                    <DialogTitle className="text-xl font-bold">
                         投资报告
+                    </DialogTitle>
+                    <div className="flex justify-end mt-2">
                         <Button
                             variant="outline"
                             size="sm"
@@ -356,7 +358,7 @@ export function InvestmentReportDialog({
                             <Download className="h-4 w-4" />
                             <span className="font-medium">{downloadSuccess ? '已下载!' : '下载报告'}</span>
                         </Button>
-                    </DialogTitle>
+                    </div>
                 </DialogHeader>
 
                 <div className="space-y-8 my-4">
