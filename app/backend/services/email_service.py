@@ -1,5 +1,6 @@
 import os
 import requests
+from datetime import datetime
 from typing import Optional
 import logging
 
@@ -80,6 +81,29 @@ class EmailService:
         """
         
         return await self.send_email(to_email, subject, html_content)
+    
+    async def send_admin_notification_email(self, new_user_email: str) -> bool:
+        """Send notification email to admin when a new user registers."""
+        admin_email = "1014346275@qq.com"
+        
+        if not self.api_key:
+            logger.info(f"Admin notification email would be sent to {admin_email} about new user: {new_user_email}")
+            return True
+            
+        subject = "AI股票分析 - 新用户注册通知"
+        html_content = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>AI股票分析 - 新用户注册通知</h2>
+            <p>您好，管理员，</p>
+            <p>有新用户注册了AI股票分析平台：</p>
+            <p><strong>注册邮箱：</strong> {new_user_email}</p>
+            <p><strong>注册时间：</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <p>请及时关注新用户的使用情况。</p>
+            <p>AI股票分析系统</p>
+        </div>
+        """
+        
+        return await self.send_email(admin_email, subject, html_content)
     
     async def send_email(self, to_email: str, subject: str, html_content: str) -> bool:
         """Send email using Elastic Email API."""

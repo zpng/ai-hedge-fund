@@ -102,6 +102,9 @@ class AuthService:
         # 发送欢迎邮件
         await self.email_service.send_welcome_email(email)
         
+        # 发送管理员通知邮件
+        await self.email_service.send_admin_notification_email(email)
+        
         return user
     
     async def verify_email(self, email: str, code: str) -> bool:
