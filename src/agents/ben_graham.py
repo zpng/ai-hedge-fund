@@ -321,7 +321,7 @@ def generate_graham_output(
 
             Return JSON exactly in this format and please use chinese to reply:
             {{
-              "signal": "bullish" or "bearish" or "neutral",
+              "signal": "看涨" or "看跌" or "中立",
               "confidence": float (0-100),
               "reasoning": "string"
             }}

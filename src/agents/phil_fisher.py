@@ -559,7 +559,7 @@ def generate_fisher_output(
               For example, if bearish: "Despite operating in a growing industry, management has failed to translate R&D investments (only 5% of revenue) into meaningful new products. Margins have fluctuated between 10-15%, showing inconsistent operational execution. The company faces increasing competition from three larger competitors with superior distribution networks. Given these concerns about long-term growth sustainability..."
               
               You must output a JSON object with:
-                - "signal": "bullish" or "bearish" or "neutral"
+                - "signal": "看涨" or "看跌" or "中立"
                 - "confidence": a float between 0 and 100
                 - "reasoning": a detailed explanation
               """,
@@ -573,7 +573,7 @@ def generate_fisher_output(
 
               Return the trading signal in this JSON format and please use chinese to reply:
               {{
-                "signal": "bullish/bearish/neutral",
+                "signal": "看涨/看跌/中立",
                 "confidence": float (0-100),
                 "reasoning": "string"
               }}

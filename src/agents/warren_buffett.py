@@ -799,7 +799,7 @@ def generate_buffett_output(
 
                 Please provide your investment decision in exactly this JSON format and please use chinese to reply:
                 {{
-                  "signal": "bullish" | "bearish" | "neutral",
+                  "signal": "看涨" | "看跌" | "中立",
                   "confidence": float between 0 and 100,
                   "reasoning": "string with your detailed Warren Buffett-style analysis"
                 }}

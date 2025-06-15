@@ -468,7 +468,7 @@ def generate_lynch_output(
                 
                 Return your final output strictly in JSON with the fields:
                 {{
-                  "signal": "bullish" | "bearish" | "neutral",
+                  "signal": "看涨" | "看跌" | "中立",
                   "confidence": 0 to 100,
                   "reasoning": "string"
                 }}

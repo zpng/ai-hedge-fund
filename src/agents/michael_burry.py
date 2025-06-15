@@ -362,7 +362,7 @@ def _generate_burry_output(
 
                 Return the trading signal in the following JSON format exactly and please use chinese to reply:
                 {{
-                  "signal": "bullish" | "bearish" | "neutral",
+                  "signal": "看涨" | "看跌" | "中立",
                   "confidence": float between 0 and 100,
                   "reasoning": "string"
                 }}

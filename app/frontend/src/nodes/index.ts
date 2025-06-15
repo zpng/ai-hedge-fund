@@ -1,11 +1,9 @@
 import { Edge, type NodeTypes, MarkerType} from '@xyflow/react';
-
 import { AgentNode } from './components/agent-node';
 import { InvestmentReportNode } from './components/investment-report-node';
 import { JsonOutputNode } from './components/json-output-node';
 import { PortfolioManagerNode } from './components/portfolio-manager-node';
 import { type AppNode } from './types';
-import { agents } from '@/data/agents';
 
 // Types
 export * from './types';
@@ -22,12 +20,12 @@ export const initialNodes: AppNode[] = [
     },
   },
   {
-    id: 'valuation_analyst',
+    id: 'aswath_damodaran',
     type: 'agent-node',
     position: { x: 300, y: 25 },
     data: {
-      name: 'Valuation Analyst',
-      description: 'Company Valuation Specialist',
+      name: 'Aswath Damodaran',
+      description: 'Intrinsic Value Analysis Specialist',
       status: 'Idle',
     },
   },
@@ -44,8 +42,8 @@ export const initialNodes: AppNode[] = [
 ];
 
 export const initialEdges: Edge[] = [
-  { id: 'e1-2', source: 'portfolio-manager-node', target: 'valuation_analyst' },
-  { id: 'e2-3', source: 'valuation_analyst', target: 'investment-report-node' },
+  { id: 'e1-2', source: 'portfolio-manager-node', target: 'aswath_damodaran' },
+  { id: 'e2-3', source: 'aswath_damodaran', target: 'investment-report-node' },
 ];
 
 export const nodeTypes = {

@@ -436,7 +436,7 @@ def generate_ackman_output(
 
             Return your output in strictly valid JSON and please use chinese to reply:
             {{
-              "signal": "bullish" | "bearish" | "neutral",
+              "signal": "看涨" | "看跌" | "中立",
               "confidence": float (0-100),
               "reasoning": "string"
             }}
