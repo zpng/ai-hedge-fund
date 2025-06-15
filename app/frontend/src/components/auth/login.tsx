@@ -325,6 +325,9 @@ export function Login() {
           <p className="text-gray-600 mt-2 text-sm">
             智能投资决策，专业数据分析，支持美股和币，港股和A股研发中
           </p>
+          <p className="text-gray-500 mt-1 text-xs">
+            支持最新最强大的大模型Gemini 2.5 pro, Claude Sonnet 4, DeepSeek，OpenAI GPT-4.1 o3等
+          </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'login' | 'register')}>
