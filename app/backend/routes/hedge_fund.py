@@ -11,9 +11,10 @@ from app.backend.services.auth_service import AuthService
 from app.backend.dependencies import get_auth_service
 from app.backend.routes.auth import get_current_user
 from src.utils.progress import progress
+from src.utils.analysts import get_agents_list
+from src.llm.models import get_models_list
 
 router = APIRouter(prefix="/hedge-fund")
-
 
 @router.post(
     path="/run",
@@ -37,7 +38,7 @@ async def run_hedge_fund(
                 status_code=403,
                 detail="API调用次数不足，请升级您的订阅"
             )
-        
+
         # Create the portfolio
         portfolio = create_portfolio(request.initial_cash, request.margin_requirement, request.tickers)
 
@@ -122,3 +123,33 @@ async def run_hedge_fund(
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"处理请求时发生错误: {str(e)}")
+
+@router.get(
+    path="/agents",
+    responses={
+        200: {"description": "List of available agents"},
+        500: {"model": ErrorResponse, "description": "Internal server error"},
+    },
+)
+async def get_agents():
+    """Get the list of available agents."""
+    try:
+        return {"agents": get_agents_list()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve agents: {str(e)}")
+
+
+@router.get(
+    path="/language-models",
+    responses={
+        200: {"description": "List of available LLMs"},
+        500: {"model": ErrorResponse, "description": "Internal server error"},
+    },
+)
+async def get_language_models():
+    """Get the list of available models."""
+    try:
+        return {"models": get_models_list()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve models: {str(e)}")
+

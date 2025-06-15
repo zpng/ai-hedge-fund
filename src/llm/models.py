@@ -116,6 +116,18 @@ def get_model_info(model_name: str, model_provider: str) -> LLMModel | None:
     return model
 
 
+def get_models_list():
+    """Get the list of models for API responses."""
+    return [
+        {
+            "display_name": model.display_name,
+            "model_name": model.model_name,
+            "provider": model.provider.value
+        }
+        for model in AVAILABLE_MODELS
+    ]
+
+
 def get_model(model_name: str, model_provider: ModelProvider) -> ChatOpenAI | ChatGroq | ChatOllama | None:
     logger.info(f"初始化模型: model_name={model_name}, model_provider={model_provider}")
     base_url = os.getenv("MODEL_BASE_URL")

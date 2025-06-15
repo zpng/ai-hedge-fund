@@ -36,7 +36,7 @@ export function Flow({ className = '', onGoToHome }: FlowProps) {
   const proOptions = { hideAttribution: true };
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   // Initialize the flow when it first renders
   const onInit = useCallback(() => {
     if (!isInitialized) {

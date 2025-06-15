@@ -102,42 +102,11 @@ def technical_analyst_agent(state: AgentState):
             strategy_weights,
         )
 
-        # Generate detailed reasoning for the technical analysis
-        reasoning_parts = []
-        
-        # Trend analysis reasoning
-        trend_conf = round(trend_signals["confidence"] * 100)
-        reasoning_parts.append(f"趋势分析: {trend_signals['signal']} (置信度: {trend_conf}%)")
-        
-        # Mean reversion reasoning
-        mr_conf = round(mean_reversion_signals["confidence"] * 100)
-        reasoning_parts.append(f"均值回归: {mean_reversion_signals['signal']} (置信度: {mr_conf}%)")
-        
-        # Momentum reasoning
-        mom_conf = round(momentum_signals["confidence"] * 100)
-        reasoning_parts.append(f"动量分析: {momentum_signals['signal']} (置信度: {mom_conf}%)")
-        
-        # Volatility reasoning
-        vol_conf = round(volatility_signals["confidence"] * 100)
-        reasoning_parts.append(f"波动率分析: {volatility_signals['signal']} (置信度: {vol_conf}%)")
-        
-        # Statistical arbitrage reasoning
-        stat_conf = round(stat_arb_signals["confidence"] * 100)
-        reasoning_parts.append(f"统计套利: {stat_arb_signals['signal']} (置信度: {stat_conf}%)")
-        
-        # Combined reasoning
-        overall_conf = round(combined_signal["confidence"] * 100)
-        reasoning_parts.append(f"\n综合技术分析结果: {combined_signal['signal']} (综合置信度: {overall_conf}%)")
-        reasoning_parts.append(f"权重分配: 趋势分析25%, 均值回归20%, 动量分析25%, 波动率分析15%, 统计套利15%")
-        
-        detailed_reasoning = "\n".join(reasoning_parts)
-
         # Generate detailed analysis report for this ticker
         technical_analysis[ticker] = {
             "signal": combined_signal["signal"],
             "confidence": round(combined_signal["confidence"] * 100),
-            "reasoning": detailed_reasoning,
-            "strategy_signals": {
+            "reasoning": {
                 "trend_following": {
                     "signal": trend_signals["signal"],
                     "confidence": round(trend_signals["confidence"] * 100),

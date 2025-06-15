@@ -1,9 +1,9 @@
-import { type NodeTypes, MarkerType } from '@xyflow/react';
+import { Edge, type NodeTypes, MarkerType} from '@xyflow/react';
 
 import { AgentNode } from './components/agent-node';
+import { InvestmentReportNode } from './components/investment-report-node';
 import { JsonOutputNode } from './components/json-output-node';
-import { TextInputNode } from './components/text-input-node';
-import { TextOutputNode } from './components/text-output-node';
+import { PortfolioManagerNode } from './components/portfolio-manager-node';
 import { type AppNode } from './types';
 import { agents } from '@/data/agents';
 
@@ -12,63 +12,45 @@ export * from './types';
 
 export const initialNodes: AppNode[] = [
   {
-    id: 'text-input-node',
-    type: 'input-node',
+    id: 'portfolio-manager-node',
+    type: 'portfolio-manager-node',
     position: { x: 0, y: 0 },
     data: {
-      name: 'Input',
+      name: 'Portfolio Manager',
       description: 'Start Node',
       status: 'Idle',
     },
   },
   {
-    id: 'text-output-node',
-    type: 'text-output-node',
-    position: { x: 800, y: 0 },
+    id: 'valuation_analyst',
+    type: 'agent-node',
+    position: { x: 300, y: 25 },
     data: {
-      name: 'Text Output',
-      description: 'Output Node',
+      name: 'Valuation Analyst',
+      description: 'Company Valuation Specialist',
       status: 'Idle',
     },
   },
-  // Add all agent nodes in a grid layout
-  ...agents.map((agent, index) => ({
-    id: agent.key,
-    type: 'agent-node',
-    // Position agents in a grid layout between input and output
-    position: { 
-      x: 400, 
-      y: -300 + (index * 100) // Distribute vertically with 100px spacing
-    },
+  {
+    id: 'investment-report-node',
+    type: 'investment-report-node',
+    position: { x: 600, y: 75 },
     data: {
-      name: agent.display_name,
-      description: agent.description || '',
+      name: 'Investment Report',
+      description: 'End Node',
       status: 'Idle',
     },
-  })),
-] as AppNode[];
+  },
+];
 
-// Create edges connecting input to all agents and all agents to output
-export const initialEdges = [
-  // Connect input to all agents
-  ...agents.map((agent) => ({
-    id: `text-input-node-${agent.key}`,
-    source: 'text-input-node',
-    target: agent.key,
-    markerEnd: { type: MarkerType.ArrowClosed },
-  })),
-  // Connect all agents to output
-  ...agents.map((agent) => ({
-    id: `${agent.key}-text-output-node`,
-    source: agent.key,
-    target: 'text-output-node',
-    markerEnd: { type: MarkerType.ArrowClosed },
-  })),
+export const initialEdges: Edge[] = [
+  { id: 'e1-2', source: 'portfolio-manager-node', target: 'valuation_analyst' },
+  { id: 'e2-3', source: 'valuation_analyst', target: 'investment-report-node' },
 ];
 
 export const nodeTypes = {
   'agent-node': AgentNode,
-  'input-node': TextInputNode,
-  'text-output-node': TextOutputNode,
+  'portfolio-manager-node': PortfolioManagerNode,
+  'investment-report-node': InvestmentReportNode,
   'json-output-node': JsonOutputNode,
 } satisfies NodeTypes;

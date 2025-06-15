@@ -71,31 +71,50 @@ def sentiment_analyst_agent(state: AgentState):
         confidence = 0  # Default confidence when there are no signals
         if total_weighted_signals > 0:
             confidence = round((max(bullish_signals, bearish_signals) / total_weighted_signals) * 100, 2)
-        
-        # Generate detailed reasoning
-        reasoning_parts = []
-        reasoning_parts.append(f"情感分析结果: {overall_signal} (置信度: {confidence}%)")
-        reasoning_parts.append(f"\n数据来源分析:")
-        reasoning_parts.append(f"• 内部人交易: {len(insider_signals)}条记录 (权重: {insider_weight*100}%)")
-        reasoning_parts.append(f"  - 看涨信号: {insider_signals.count('看涨')}条")
-        reasoning_parts.append(f"  - 看跌信号: {insider_signals.count('看跌')}条")
-        reasoning_parts.append(f"• 公司新闻: {len(news_signals)}条记录 (权重: {news_weight*100}%)")
-        reasoning_parts.append(f"  - 看涨信号: {news_signals.count('看涨')}条")
-        reasoning_parts.append(f"  - 看跌信号: {news_signals.count('看跌')}条")
-        reasoning_parts.append(f"  - 中性信号: {news_signals.count('中立')}条")
-        reasoning_parts.append(f"\n加权信号统计:")
-        reasoning_parts.append(f"• 加权看涨信号: {bullish_signals:.1f}")
-        reasoning_parts.append(f"• 加权看跌信号: {bearish_signals:.1f}")
-        
-        detailed_reasoning = "\n".join(reasoning_parts)
+
+        # Create structured reasoning similar to technical analysis
+        reasoning = {
+            "insider_trading": {
+                "signal": "bullish" if insider_signals.count("bullish") > insider_signals.count("bearish") else
+                         "bearish" if insider_signals.count("bearish") > insider_signals.count("bullish") else "neutral",
+                "confidence": round((max(insider_signals.count("bullish"), insider_signals.count("bearish")) / max(len(insider_signals), 1)) * 100),
+                "metrics": {
+                    "total_trades": len(insider_signals),
+                    "bullish_trades": insider_signals.count("bullish"),
+                    "bearish_trades": insider_signals.count("bearish"),
+                    "weight": insider_weight,
+                    "weighted_bullish": round(insider_signals.count("bullish") * insider_weight, 1),
+                    "weighted_bearish": round(insider_signals.count("bearish") * insider_weight, 1),
+                }
+            },
+            "news_sentiment": {
+                "signal": "bullish" if news_signals.count("bullish") > news_signals.count("bearish") else
+                         "bearish" if news_signals.count("bearish") > news_signals.count("bullish") else "neutral",
+                "confidence": round((max(news_signals.count("bullish"), news_signals.count("bearish")) / max(len(news_signals), 1)) * 100),
+                "metrics": {
+                    "total_articles": len(news_signals),
+                    "bullish_articles": news_signals.count("bullish"),
+                    "bearish_articles": news_signals.count("bearish"),
+                    "neutral_articles": news_signals.count("neutral"),
+                    "weight": news_weight,
+                    "weighted_bullish": round(news_signals.count("bullish") * news_weight, 1),
+                    "weighted_bearish": round(news_signals.count("bearish") * news_weight, 1),
+                }
+            },
+            "combined_analysis": {
+                "total_weighted_bullish": round(bullish_signals, 1),
+                "total_weighted_bearish": round(bearish_signals, 1),
+                "signal_determination": f"{'Bullish' if bullish_signals > bearish_signals else 'Bearish' if bearish_signals > bullish_signals else 'Neutral'} based on weighted signal comparison"
+            }
+        }
 
         sentiment_analysis[ticker] = {
             "signal": overall_signal,
             "confidence": confidence,
-            "reasoning": detailed_reasoning,
+            "reasoning": reasoning,
         }
 
-        progress.update_status("sentiment_analyst_agent", ticker, "Done", analysis=detailed_reasoning)
+        progress.update_status("sentiment_analyst_agent", ticker, "Done", analysis=json.dumps(reasoning, indent=4))
 
     # Create the sentiment message
     message = HumanMessage(
