@@ -208,7 +208,11 @@ export function PortfolioManagerNode({
                     onChange={handleTickersChange}
                   />
                   <Button 
-                    className="flex-shrink-0 transition-all duration-200 bg-green-600 hover:bg-green-700 text-white active:scale-95 px-3 py-2 h-auto min-w-fit"
+                    className={`flex-shrink-0 transition-all duration-200 text-white active:scale-95 px-3 py-2 h-auto min-w-fit ${
+                      isProcessing 
+                        ? 'bg-red-600 hover:bg-red-700' 
+                        : 'bg-green-600 hover:bg-green-700'
+                    }`}
                     onClick={isProcessing ? handleStop : handlePlay}
                     disabled={!isProcessing && !tickers.trim()}
                   >
