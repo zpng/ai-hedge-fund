@@ -290,9 +290,9 @@ export function Login() {
       <button
         onClick={() => window.open('https://docs.example.com', '_blank')}
         className="absolute top-4 right-4 z-20 px-3 py-2 bg-white/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg hover:bg-white/90 transition-all duration-200 text-sm font-medium text-gray-600 hover:text-blue-600"
-        title="帮助文档"
+        title="QQ群：992562811"
       >
-        帮助文档
+        QQ群：992562811
       </button>
       
       {/* 动态渐变背景 */}

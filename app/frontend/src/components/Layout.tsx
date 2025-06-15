@@ -54,12 +54,12 @@ export function Layout({ leftSidebar, rightSidebar, children }: LayoutProps) {
 
             {/* Help documentation button - always visible in top right */}
             <button
-              onClick={() => window.open('https://docs.example.com', '_blank')}
-              className="px-3 py-2 bg-white/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg hover:bg-white/90 transition-all duration-200 text-sm font-medium text-gray-600 hover:text-blue-600 absolute top-4 right-4 z-30"
-              title="帮助文档"
-            >
-              帮助文档
-            </button>
+               onClick={() => window.open('https://docs.example.com', '_blank')}
+               className="px-3 py-2 bg-white/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg hover:bg-white/90 transition-all duration-200 text-sm font-medium text-gray-600 hover:text-blue-600 absolute top-4 right-4 z-30"
+               title="QQ群：992562811"
+             >
+               QQ群：992562811
+             </button>
 
             {/* Right sidebar */}
             {rightSidebar && (
