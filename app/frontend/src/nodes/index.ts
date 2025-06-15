@@ -210,7 +210,7 @@ export const initialEdges: Edge[] = [
   { id: 'e1-15', source: 'portfolio-manager-node', target: 'valuation_analyst' },
   { id: 'e1-16', source: 'portfolio-manager-node', target: 'risk_manager' },
   
-  // All agents to Investment Report
+  // 所有代理到投资报告
   { id: 'e2-1', source: 'aswath_damodaran', target: 'investment-report-node' },
   { id: 'e2-2', source: 'warren_buffett', target: 'investment-report-node' },
   { id: 'e2-3', source: 'charlie_munger', target: 'investment-report-node' },

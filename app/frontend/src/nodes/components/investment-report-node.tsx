@@ -36,7 +36,7 @@ export function InvestmentReportNode({
         selected={selected}
         isConnectable={isConnectable}
         icon={<FileText className="h-5 w-5" />}
-        name={data.name || "Investment Report"}
+        name={data.name || "投资报告"}
         description={data.description}
         hasRightHandle={false}
       >
