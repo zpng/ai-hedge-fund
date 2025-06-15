@@ -79,16 +79,7 @@ export const initialNodes: AppNode[] = [
       status: '空闲',
     },
   },
-  {
-    id: 'michael_burry',
-    type: 'agent-node',
-    position: { x: 300, y: 80 },
-    data: {
-      name: '迈克尔·伯里',
-      description: '逆向价值投资专家',
-      status: '空闲',
-    },
-  },
+
   {
     id: 'stanley_druckenmiller',
     type: 'agent-node',
@@ -199,7 +190,7 @@ export const initialEdges: Edge[] = [
   { id: 'e1-4', source: 'portfolio-manager-node', target: 'peter_lynch' },
   { id: 'e1-5', source: 'portfolio-manager-node', target: 'bill_ackman' },
   { id: 'e1-6', source: 'portfolio-manager-node', target: 'cathie_wood' },
-  { id: 'e1-7', source: 'portfolio-manager-node', target: 'michael_burry' },
+
   { id: 'e1-8', source: 'portfolio-manager-node', target: 'stanley_druckenmiller' },
   { id: 'e1-9', source: 'portfolio-manager-node', target: 'phil_fisher' },
   { id: 'e1-10', source: 'portfolio-manager-node', target: 'ben_graham' },
@@ -217,7 +208,7 @@ export const initialEdges: Edge[] = [
   { id: 'e2-4', source: 'peter_lynch', target: 'investment-report-node' },
   { id: 'e2-5', source: 'bill_ackman', target: 'investment-report-node' },
   { id: 'e2-6', source: 'cathie_wood', target: 'investment-report-node' },
-  { id: 'e2-7', source: 'michael_burry', target: 'investment-report-node' },
+
   { id: 'e2-8', source: 'stanley_druckenmiller', target: 'investment-report-node' },
   { id: 'e2-9', source: 'phil_fisher', target: 'investment-report-node' },
   { id: 'e2-10', source: 'ben_graham', target: 'investment-report-node' },
