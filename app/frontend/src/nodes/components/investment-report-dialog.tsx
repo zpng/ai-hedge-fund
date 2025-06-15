@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
     Accordion,
     AccordionContent,
@@ -5,6 +6,7 @@ import {
     AccordionTrigger,
 } from '@/components/ui/accordion';
 import {Badge} from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -26,9 +28,10 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import {ArrowDown, ArrowUp, Minus} from 'lucide-react';
+import {ArrowDown, ArrowUp, Minus, Download} from 'lucide-react';
 import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter';
 import {vscDarkPlus} from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useToast } from '@/hooks/use-toast';
 
 interface InvestmentReportDialogProps {
     isOpen: boolean;
@@ -43,6 +46,9 @@ export function InvestmentReportDialog({
                                            onOpenChange,
                                            outputNodeData
                                        }: InvestmentReportDialogProps) {
+    const [downloadSuccess, setDownloadSuccess] = useState(false);
+    const { toast } = useToast();
+    
     if (!outputNodeData) return null;
 
     const getActionIcon = (action: ActionType) => {
@@ -116,11 +122,241 @@ export function InvestmentReportDialog({
         return agentNameMap[agentKey] || agentKey.replace(/_/g, ' ');
     };
 
+    const downloadReport = async () => {
+        try {
+            // 创建一个临时的Canvas来生成长图片
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) throw new Error('无法创建Canvas上下文');
+
+            // 设置Canvas尺寸 - 长图片格式
+            const width = 800;
+            const padding = 40;
+            const lineHeight = 30;
+            const sectionSpacing = 40;
+            
+            // 先计算所需的总高度
+            let totalHeight = 100; // 标题和时间戳
+            totalHeight += 60; // 摘要标题
+            totalHeight += 30 + (tickers.length * 25); // 表格
+            totalHeight += sectionSpacing;
+            totalHeight += 40; // 分析师信号标题
+            
+            // 计算分析师信号部分的高度
+            tickers.forEach(ticker => {
+                totalHeight += 30; // 股票标题
+                agents.forEach(agent => {
+                    const signal = outputNodeData.analyst_signals[agent]?.[ticker];
+                    if (signal) {
+                        totalHeight += 20; // 分析师名称
+                        totalHeight += 20; // 信号和置信度
+                        
+                        // 推理内容行数
+                        const reasoning = typeof signal.reasoning === 'string' ? 
+                            signal.reasoning : JSON.stringify(signal.reasoning);
+                        const maxChars = 100;
+                        const lines = Math.min(3, Math.ceil(reasoning.length / maxChars));
+                        totalHeight += lines * 16 + 10;
+                    }
+                });
+                totalHeight += 20;
+            });
+            
+            totalHeight += 40; // 底部边距
+            
+            // 设置Canvas尺寸
+            canvas.width = width;
+            canvas.height = totalHeight;
+            
+            // 绘制函数
+            const drawReport = () => {
+                // 设置背景
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, width, totalHeight);
+                
+                let y = 40;
+                
+                // 标题
+                ctx.fillStyle = '#1f2937';
+                ctx.font = 'bold 24px Arial, sans-serif';
+                ctx.fillText('投资报告', padding, y);
+                y += lineHeight + 10;
+                
+                // 时间戳
+                ctx.font = '14px Arial, sans-serif';
+                ctx.fillStyle = '#6b7280';
+                ctx.fillText(`生成时间: ${new Date().toLocaleString('zh-CN')}`, padding, y);
+                y += sectionSpacing;
+                
+                // 摘要部分
+                ctx.fillStyle = '#1f2937';
+                ctx.font = 'bold 18px Arial, sans-serif';
+                ctx.fillText('投资决策摘要', padding, y);
+                y += lineHeight;
+                
+                // 绘制表格头
+                const colWidths = [80, 80, 80, 60, 80, 200];
+                const headers = ['股票代码', '价格', '操作', '数量', '置信度', '理由'];
+                let x = padding;
+                
+                ctx.fillStyle = '#f3f4f6';
+                ctx.fillRect(padding, y - 5, width - padding * 2, 25);
+                
+                ctx.fillStyle = '#1f2937';
+                ctx.font = 'bold 12px Arial, sans-serif';
+                headers.forEach((header, i) => {
+                    ctx.fillText(header, x, y + 15);
+                    x += colWidths[i];
+                });
+                y += 30;
+                
+                // 绘制数据行
+                ctx.font = '12px Arial, sans-serif';
+                tickers.forEach((ticker, index) => {
+                    const decision = outputNodeData.decisions[ticker];
+                    const currentPrice = outputNodeData.analyst_signals.risk_management_agent?.[ticker]?.current_price || 'N/A';
+                    
+                    // 交替行背景色
+                    if (index % 2 === 0) {
+                        ctx.fillStyle = '#f9fafb';
+                        ctx.fillRect(padding, y - 5, width - padding * 2, 25);
+                    }
+                    
+                    ctx.fillStyle = '#1f2937';
+                    x = padding;
+                    
+                    const rowData = [
+                        ticker,
+                        typeof currentPrice === 'number' ? `$${currentPrice.toFixed(2)}` : currentPrice,
+                        decision.action === 'buy' ? '买入' : 
+                         decision.action === 'sell' ? '卖出' : 
+                         decision.action === 'hold' ? '持有' : 
+                         decision.action === 'long' ? '做多' : 
+                         decision.action === 'short' ? '做空' : decision.action,
+                        decision.quantity.toString(),
+                        `${decision.confidence.toFixed(1)}%`,
+                        typeof decision.reasoning === 'string' ? 
+                            decision.reasoning.substring(0, 50) + (decision.reasoning.length > 50 ? '...' : '') :
+                            'JSON数据'
+                    ];
+                    
+                    rowData.forEach((data, i) => {
+                        ctx.fillText(data, x, y + 15);
+                        x += colWidths[i];
+                    });
+                    y += 25;
+                });
+                
+                y += sectionSpacing;
+                
+                // 分析师信号部分
+                ctx.fillStyle = '#1f2937';
+                ctx.font = 'bold 18px Arial, sans-serif';
+                ctx.fillText('分析师信号详情', padding, y);
+                y += lineHeight + 10;
+                
+                tickers.forEach(ticker => {
+                    ctx.font = 'bold 16px Arial, sans-serif';
+                    ctx.fillStyle = '#1f2937';
+                    const actionText = outputNodeData.decisions[ticker].action === 'buy' ? '买入' : 
+                        outputNodeData.decisions[ticker].action === 'sell' ? '卖出' : 
+                        outputNodeData.decisions[ticker].action === 'hold' ? '持有' : 
+                        outputNodeData.decisions[ticker].action === 'long' ? '做多' : 
+                        outputNodeData.decisions[ticker].action === 'short' ? '做空' : 
+                        outputNodeData.decisions[ticker].action;
+                    ctx.fillText(`${ticker} - ${actionText}`, padding, y);
+                    y += lineHeight;
+                    
+                    agents.forEach(agent => {
+                        const signal = outputNodeData.analyst_signals[agent]?.[ticker];
+                        if (!signal) return;
+                        
+                        ctx.font = 'bold 14px Arial, sans-serif';
+                        ctx.fillStyle = '#374151';
+                        ctx.fillText(`${getAgentDisplayName(agent)}:`, padding + 20, y);
+                        y += 20;
+                        
+                        ctx.font = '12px Arial, sans-serif';
+                        ctx.fillStyle = '#6b7280';
+                        
+                        // 信号和置信度
+                        const signalText = signal.signal === 'bullish' ? '看涨' :
+                            signal.signal === 'bearish' ? '看跌' :
+                            signal.signal === 'neutral' ? '中立' : signal.signal;
+                        ctx.fillText(`信号: ${signalText} | 置信度: ${signal.confidence.toFixed(1)}%`, padding + 40, y);
+                        y += 20;
+                        
+                        // 推理内容（截取前300字符，分行显示）
+                        const reasoning = typeof signal.reasoning === 'string' ? 
+                            signal.reasoning : JSON.stringify(signal.reasoning);
+                        const maxChars = 100;
+                        const lines = [];
+                        for (let i = 0; i < reasoning.length; i += maxChars) {
+                            lines.push(reasoning.substring(i, i + maxChars));
+                            if (lines.length >= 3) break; // 最多显示3行
+                        }
+                        
+                        lines.forEach(line => {
+                            ctx.fillText(line, padding + 40, y);
+                            y += 16;
+                        });
+                        y += 10;
+                    });
+                    y += 20;
+                });
+            };
+            
+            // 执行绘制
+            drawReport();
+            
+            // 转换为图片并下载
+            canvas.toBlob((blob) => {
+                if (!blob) throw new Error('无法生成图片');
+                
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `investment-report-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                
+                setDownloadSuccess(true);
+                setTimeout(() => setDownloadSuccess(false), 2000);
+                toast({
+                    variant: "success",
+                    title: "下载成功",
+                    description: "投资报告长图已保存到本地",
+                });
+            }, 'image/png');
+            
+        } catch (err) {
+            console.error('Failed to download report: ', err);
+            toast({
+                variant: "destructive",
+                title: "下载失败",
+                description: "无法生成图片，请重试",
+            });
+        }
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="text-xl font-bold">投资报告</DialogTitle>
+                    <DialogTitle className="text-xl font-bold flex items-center justify-between">
+                        投资报告
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={downloadReport}
+                            className="flex items-center gap-1.5"
+                        >
+                            <Download className="h-4 w-4" />
+                            <span className="font-medium">{downloadSuccess ? '已下载!' : '下载报告'}</span>
+                        </Button>
+                    </DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-8 my-4">
