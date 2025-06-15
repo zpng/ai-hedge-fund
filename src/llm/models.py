@@ -143,7 +143,7 @@ def get_model(model_name: str, model_provider: ModelProvider) -> ChatOpenAI | Ch
             raise ValueError(error_msg)
         logger.info(f"成功获取Groq API密钥")
         return ChatGroq(model=model_name, api_key=api_key, base_url=base_url)
-    elif model_provider == ModelProvider.OPENAI:
+    elif model_provider == ModelProvider.OPENAI or model_provider == ModelProvider.GEMINI:
         logger.info(f"初始化OpenAI模型: {model_name}")
         # Get and validate API key
         api_key = os.getenv("OPENAI_API_KEY")
@@ -189,34 +189,34 @@ def get_model(model_name: str, model_provider: ModelProvider) -> ChatOpenAI | Ch
         except Exception as e:
             logger.error(f"初始化DeepSeek模型失败: {str(e)}")
             raise
-    elif model_provider == ModelProvider.GEMINI:
-        logger.info(f"初始化Gemini模型: {model_name}")
-        api_key = os.getenv("GOOGLE_API_KEY")
-        if not api_key:
-            error_msg = "Google API key not found. Please make sure GOOGLE_API_KEY is set in your .env file."
-            logger.error(error_msg)
-            raise ValueError(error_msg)
-        logger.info(f"成功获取Google API密钥")
-        try:
-            # 构建Gemini模型参数
-            gemini_params = {
-                "model": model_name,
-                "api_key": api_key
-            }
+    # elif model_provider == ModelProvider.GEMINI:
+    #     logger.info(f"初始化Gemini模型: {model_name}")
+    #     api_key = os.getenv("GOOGLE_API_KEY")
+    #     if not api_key:
+    #         error_msg = "Google API key not found. Please make sure GOOGLE_API_KEY is set in your .env file."
+    #         logger.error(error_msg)
+    #         raise ValueError(error_msg)
+    #     logger.info(f"成功获取Google API密钥")
+    #     try:
+    #         # 构建Gemini模型参数
+    #         gemini_params = {
+    #             "model": model_name,
+    #             "api_key": api_key
+    #         }
             
-            # 如果设置了GEMINI_MODEL_BASE_URL，使用client_options来配置代理端点
-            gemini_base_url = os.getenv("GEMINI_MODEL_BASE_URL")
-            if gemini_base_url:
-                logger.info(f"使用自定义Gemini API端点: {gemini_base_url}")
-                gemini_params["client_options"] = {
-                    "api_endpoint": gemini_base_url
-                }
+    #         # 如果设置了GEMINI_MODEL_BASE_URL，使用client_options来配置代理端点
+    #         gemini_base_url = os.getenv("GEMINI_MODEL_BASE_URL")
+    #         if gemini_base_url:
+    #             logger.info(f"使用自定义Gemini API端点: {gemini_base_url}")
+    #             gemini_params["client_options"] = {
+    #                 "api_endpoint": gemini_base_url
+    #             }
             
-            model = ChatGoogleGenerativeAI(**gemini_params)
-            logger.info(f"成功初始化Gemini模型")
-            return model
-        except Exception as e:
-            logger.error(f"初始化Gemini模型失败: {str(e)}")
+    #         model = ChatGoogleGenerativeAI(**gemini_params)
+    #         logger.info(f"成功初始化Gemini模型")
+    #         return model
+    #     except Exception as e:
+    #         logger.error(f"初始化Gemini模型失败: {str(e)}")
             raise
     elif model_provider == ModelProvider.OLLAMA:
         logger.info(f"初始化Ollama模型: {model_name}")
