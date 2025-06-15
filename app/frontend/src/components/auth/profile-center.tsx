@@ -574,12 +574,11 @@ export function ProfileCenter({ onGoToComponents: _onGoToComponents }: ProfileCe
                       </p>
                       <div className="flex gap-3">
                         <input
-                      className="text-base md:text-sm -webkit-appearance-none appearance-none touch-manipulation"
                           type="email"
                           placeholder="输入要清空数据的邮箱地址"
                           value={clearEmail}
                           onChange={(e) => setClearEmail(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-base md:text-sm -webkit-appearance-none appearance-none touch-manipulation"
                         />
                         <Button
                           onClick={clearUserData}
