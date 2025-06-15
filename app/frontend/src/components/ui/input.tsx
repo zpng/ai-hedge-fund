@@ -13,10 +13,23 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           "text-base md:text-sm", // 在移动端使用16px字体大小防止iOS自动缩放
           "-webkit-appearance-none appearance-none", // 重置webkit默认样式
           "touch-manipulation", // 优化触摸交互
+          // Safari移动端特殊修复
+          "[-webkit-text-fill-color:inherit]", // 修复Safari文字颜色问题
+          "[background-color:transparent!important]", // 强制透明背景
+          "[-webkit-background-clip:text]", // 修复背景裁剪
+          "[caret-color:currentColor]", // 确保光标颜色正确
+          "[color:inherit]", // 继承文字颜色
+          "focus:[-webkit-text-fill-color:inherit]", // 聚焦时保持文字颜色
+          "focus:[background-color:transparent!important]", // 聚焦时保持透明背景
           className
         )}
         ref={ref}
         {...props}
+        // 添加Safari兼容性属性
+        autoComplete={props.autoComplete || "off"}
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck="false"
       />
     )
   }
