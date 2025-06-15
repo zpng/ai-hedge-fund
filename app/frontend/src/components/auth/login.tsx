@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Mail, Lock, Shield, Sparkles, Eye, EyeOff, X } from "lucide-react";
+import { Mail, Lock, Shield, Sparkles, Eye, EyeOff, X, HelpCircle } from "lucide-react";
 
 export function Login() {
   const { register, login, sendVerificationCode, verifyEmail, sendPasswordResetCode, resetPassword } = useAuth();
@@ -286,6 +286,15 @@ export function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* 帮助文档按钮 */}
+      <button
+        onClick={() => window.open('https://docs.example.com', '_blank')}
+        className="absolute top-4 right-4 z-20 p-2 bg-white/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg hover:bg-white/90 transition-all duration-200 group"
+        title="帮助文档"
+      >
+        <HelpCircle className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
+      </button>
+      
       {/* 动态渐变背景 */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(120,119,198,0.3),transparent_50%)]" />

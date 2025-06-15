@@ -2,7 +2,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { FlowProvider } from '@/contexts/flow-context';
 import { cn } from '@/lib/utils';
 import { ReactFlowProvider } from '@xyflow/react';
-import { PanelLeft } from 'lucide-react';
+import { PanelLeft, HelpCircle } from 'lucide-react';
 import { ReactNode, useState } from 'react';
 import { LeftSidebar } from './sidebar/left-sidebar';
 import { Button } from './ui/button';
@@ -51,6 +51,16 @@ export function Layout({ leftSidebar, rightSidebar, children }: LayoutProps) {
                 组件 <PanelLeft size={16} />
               </Button>
             )}
+
+            {/* Help documentation button - always visible in top right */}
+            <Button 
+              className="absolute top-4 right-4 z-30 bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 shadow-lg"
+              onClick={() => window.open('https://docs.example.com', '_blank')}
+              aria-label="帮助文档"
+              title="查看帮助文档"
+            >
+              <HelpCircle size={20} />
+            </Button>
 
             {/* Right sidebar */}
             {rightSidebar && (
