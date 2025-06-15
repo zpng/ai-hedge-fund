@@ -44,7 +44,7 @@ export function InvestmentReportNode({
           <div className="border-t border-border p-3">
             <div className="flex flex-col gap-2">
               <div className="text-subtitle text-muted-foreground flex items-center gap-1">
-                Results
+                输出节点
               </div>
               <div className="flex gap-2">
                 {isProcessing ? (
@@ -54,16 +54,20 @@ export function InvestmentReportNode({
                     disabled
                   >
                     <Loader2 className="h-2 w-2 animate-spin" />
-                    Processing...
+                    处理中...
                   </Button>
                 ) : (
                   <Button 
                     variant="secondary"
-                    className="w-full flex-shrink-0 transition-all duration-200 hover:bg-primary hover:text-primary-foreground active:scale-95 text-subtitle"
+                    className={`w-full flex-shrink-0 transition-all duration-200 active:scale-95 text-subtitle ${
+                      isOutputAvailable 
+                        ? 'bg-green-600 text-white hover:bg-green-700' 
+                        : 'hover:bg-primary hover:text-primary-foreground'
+                    }`}
                     onClick={handleViewOutput}
                     disabled={!isOutputAvailable}
                   >
-                   View Output
+                   查看输出
                   </Button>
                 )}
               </div>
