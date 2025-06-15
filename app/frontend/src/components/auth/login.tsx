@@ -289,10 +289,10 @@ export function Login() {
       {/* 帮助文档按钮 */}
       <button
         onClick={() => window.open('https://docs.example.com', '_blank')}
-        className="absolute top-4 right-4 z-20 p-2 bg-white/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg hover:bg-white/90 transition-all duration-200 group"
+        className="absolute top-4 right-4 z-20 px-3 py-2 bg-white/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg hover:bg-white/90 transition-all duration-200 text-sm font-medium text-gray-600 hover:text-blue-600"
         title="帮助文档"
       >
-        <HelpCircle className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
+        帮助文档
       </button>
       
       {/* 动态渐变背景 */}

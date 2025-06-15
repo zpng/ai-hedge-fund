@@ -53,14 +53,13 @@ export function Layout({ leftSidebar, rightSidebar, children }: LayoutProps) {
             )}
 
             {/* Help documentation button - always visible in top right */}
-            <Button 
-              className="absolute top-4 right-4 z-30 bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 shadow-lg"
+            <button
               onClick={() => window.open('https://docs.example.com', '_blank')}
-              aria-label="帮助文档"
-              title="查看帮助文档"
+              className="px-3 py-2 bg-white/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg hover:bg-white/90 transition-all duration-200 text-sm font-medium text-gray-600 hover:text-blue-600 absolute top-4 right-4 z-30"
+              title="帮助文档"
             >
-              <HelpCircle size={20} />
-            </Button>
+              帮助文档
+            </button>
 
             {/* Right sidebar */}
             {rightSidebar && (
