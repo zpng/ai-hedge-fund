@@ -41,6 +41,8 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isGeneratingCodes, setIsGeneratingCodes] = useState(false);
+  const [allUserEmails, setAllUserEmails] = useState<string[]>([]);
+  const [isLoadingEmails, setIsLoadingEmails] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -57,6 +59,11 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
       if (response.ok) {
         const data = await response.json();
         setProfile(data);
+        
+        // 如果是特定管理员邮箱，获取所有用户邮箱
+        if (data.user.email === '1014346275@qq.com') {
+          await fetchAllUserEmails();
+        }
       } else {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.detail || '获取用户信息失败';
@@ -77,6 +84,40 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchAllUserEmails = async () => {
+    if (!token) return;
+
+    setIsLoadingEmails(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/all-user-emails`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAllUserEmails(data.emails || []);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.detail || '获取用户邮箱列表失败';
+        toast({
+          variant: "destructive",
+          title: "获取邮箱列表失败",
+          description: errorMessage,
+        });
+      }
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "网络错误",
+        description: "获取用户邮箱列表时网络错误",
+      });
+    } finally {
+      setIsLoadingEmails(false);
     }
   };
 
@@ -321,6 +362,10 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
             <h2 className="text-xl font-semibold mb-4">账户信息</h2>
             <div className="space-y-4">
               <div>
+                <label className="block text-sm font-medium text-gray-700">邮箱</label>
+                <div className="mt-1 text-sm text-gray-900">{profile.user.email}</div>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700">手机号</label>
                 <div className="mt-1 text-sm text-gray-900">{profile.user.phone}</div>
               </div>
@@ -398,6 +443,47 @@ export function UserProfile({ onGoToComponents: _onGoToComponents }: UserProfile
               )}
             </div>
           </Card>
+
+          {/* 管理员功能 - 所有用户邮箱列表 */}
+          {profile.user.email === '1014346275@qq.com' && (
+            <Card className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">所有注册用户邮箱</h2>
+                <Button 
+                  onClick={fetchAllUserEmails} 
+                  disabled={isLoadingEmails}
+                  size="sm"
+                  variant="outline"
+                >
+                  {isLoadingEmails ? '刷新中...' : '刷新列表'}
+                </Button>
+              </div>
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {allUserEmails.length > 0 ? (
+                  <>
+                    <div className="text-sm text-gray-600 mb-3">
+                      共 {allUserEmails.length} 个注册用户
+                    </div>
+                    {allUserEmails.map((email, index) => (
+                      <div key={email} className="flex justify-between items-center p-2 bg-gray-50 rounded-md">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-gray-600">#{index + 1}</span>
+                          <span className="text-sm text-gray-900">{email}</span>
+                        </div>
+                        {email === profile.user.email && (
+                          <Badge variant="secondary" className="text-xs">当前用户</Badge>
+                        )}
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <div className="text-center text-gray-500 py-4">
+                    {isLoadingEmails ? '加载中...' : '暂无用户数据'}
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
 
           {/* 订阅管理 */}
           <Card className="p-6">

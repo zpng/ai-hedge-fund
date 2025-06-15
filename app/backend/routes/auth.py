@@ -232,6 +232,34 @@ async def logout(
     return {"message": "退出登录成功"}
 
 
+@router.get("/all-user-emails")
+async def get_all_user_emails(
+    current_user: User = Depends(get_current_user),
+    redis_service: RedisService = Depends(get_redis_service)
+):
+    """获取所有注册用户的邮箱列表（仅限特定管理员账号）"""
+    # 检查当前用户是否为指定的管理员邮箱
+    if current_user.email != "1014346275@qq.com":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="无权限执行此操作"
+        )
+    
+    try:
+        emails = await redis_service.get_all_user_emails()
+        return {
+            "message": "获取用户邮箱列表成功",
+            "emails": emails,
+            "total_count": len(emails)
+        }
+    except Exception as e:
+        logger.error(f"获取用户邮箱列表失败: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="获取用户邮箱列表失败"
+        )
+
+
 @router.post("/clear-user-data")
 async def clear_user_data(
     request: ClearUserDataRequest,

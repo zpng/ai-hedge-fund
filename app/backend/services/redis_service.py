@@ -419,3 +419,11 @@ class RedisService:
         except Exception as e:
             print(f"清空用户数据失败: {str(e)}")
             return False
+    
+    async def get_all_user_emails(self) -> List[str]:
+        """获取所有注册用户的邮箱列表"""
+        # 获取所有以 email: 开头的键
+        email_keys = self.redis_client.keys("email:*")
+        # 提取邮箱地址（去掉 email: 前缀）
+        emails = [key.replace("email:", "") for key in email_keys]
+        return sorted(emails)  # 返回排序后的邮箱列表
